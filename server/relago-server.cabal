@@ -1,0 +1,43 @@
+cabal-version: 3.0
+name:          relago-server
+version:       0.1.0.0
+homepage:      https://github.com/xinux-org/relago-support
+license:       AGPL-3.0-or-later
+license-file:  LICENSE
+author:        lambdajon
+maintainer:    lambdajon42@gmail.com
+category:      Network
+build-type:    Simple
+
+-- extra-doc-files: CHANGELOG.md
+common warnings
+  ghc-options: -Wall
+
+library
+  import:           warnings
+  exposed-modules:
+    MyLib
+  build-depends:    base
+  hs-source-dirs:
+    src
+  default-language: GHC2024
+
+executable relago-server
+  import:           warnings
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , relago-server
+
+  hs-source-dirs:   app
+  default-language: GHC2024
+
+test-suite relago-server-test
+  import:           warnings
+  default-language: GHC2024
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , relago-server
