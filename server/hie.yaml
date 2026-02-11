@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:relago-server"
+
+    - path: "app/Main.hs"
+      component: "relago-server:exe:relago-server"
+
+    - path: "test"
+      component: "relago-server:test:relago-server-test"
