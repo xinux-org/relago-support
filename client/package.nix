@@ -1,26 +1,28 @@
-flake:
-{ config, lib, pkgs, ... }:
-let
+flake: {
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.services.relago-website;
 
   defaultPkg = flake.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   site = cfg.package;
-in
-{
+in {
   options.services.relago-website = with lib; {
     enable = mkEnableOption "Relago website (static SPA served by nginx)";
 
     domain = mkOption {
       type = types.str;
-      example = "relago.uz";
+      example = "reports.xinux.uz";
       description = "Primary domain name.";
     };
 
     aliases = mkOption {
       type = with types; listOf str;
-      default = [ ];
-      example = [ "www.relago.uz" ];
+      default = [];
+      example = ["reports.xinux.uz"];
       description = "Additional server names.";
     };
 
