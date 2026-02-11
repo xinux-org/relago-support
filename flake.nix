@@ -28,9 +28,9 @@
       in {
         devShells.default = pkgs.callPackage ./shell.nix {inherit pkgs;};
 
-        devShells."backend" = pkgs.callPackage ./server/shell.nix {inherit pkgs hpkgs hlib;};
+        devShells."server" = pkgs.callPackage ./server/shell.nix {inherit pkgs hpkgs hlib;};
 
-        packages."backend" = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
+        packages."server" = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
 
         #FIXME: Need implment fror frontend
 
