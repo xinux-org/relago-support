@@ -25,10 +25,12 @@
       }: let
         hpkgs = pkgs.haskell.packages.ghc910;
         hlib = pkgs.haskell.lib;
+        defaultShell = pkgs.callPackage ./shell.nix {inherit pkgs;};
+        serverShell = pkgs.callPackage ./server/shell.nix {inherit pkgs hpkgs hlib;};
       in {
-        devShells.default = pkgs.callPackage ./shell.nix {inherit pkgs;};
+        devShells.default = defaultShell;
 
-        devShells."server" = pkgs.callPackage ./server/shell.nix {inherit pkgs hpkgs hlib;};
+        devShells."server" = defaultShell // serverShell;
 
         packages."server" = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
 
