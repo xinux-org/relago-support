@@ -18,6 +18,10 @@
         "aarch64-darwin"
       ];
 
+      flake = {
+        nixosModules.client = import ./client/module.nix self;
+      };
+
       perSystem = {
         system,
         pkgs,
@@ -25,22 +29,21 @@
       }: let
         hpkgs = pkgs.haskell.packages.ghc910;
         hlib = pkgs.haskell.lib;
+
         defaultShell = pkgs.callPackage ./shell.nix {inherit pkgs;};
         serverShell = pkgs.callPackage ./server/shell.nix {inherit pkgs hpkgs hlib;};
+        clientShell = pkgs.callPackage ./client/shell.nix {inherit pkgs;};
+
+        serverPkg = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
+        clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
       in {
         devShells.default = defaultShell;
 
         devShells."server" = defaultShell // serverShell;
+        devShells."client" = defaultShell // clientShell;
 
-        packages."server" = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
-
-        #FIXME: Need implment fror frontend
-
-        devShells.frontend = pkgs.mkShell {
-          shellHook = ''
-            echo "Welcome to js"
-          '';
-        };
+        packages."server" = serverPkg;
+        packages."client" = clientPkg;
       };
     };
 }
