@@ -15,11 +15,9 @@ common warnings
 
 library
   import:           warnings
-  exposed-modules:
-    MyLib
+  exposed-modules:  MyLib
   build-depends:    base
-  hs-source-dirs:
-    src
+  hs-source-dirs:   src
   default-language: GHC2024
 
 executable relago-server
