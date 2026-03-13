@@ -42,6 +42,9 @@ library
     , wai
     , wai-extra
     , warp
+    , directory
+    , filepath
+    , fs-api
 
   hs-source-dirs:     src
   default-language:   GHC2024
