@@ -26,6 +26,8 @@ library
     , async
     , base
     , bytestring
+    , directory
+    , filepath
     , http-media
     , http-types
     , mtl
@@ -42,9 +44,7 @@ library
     , wai
     , wai-extra
     , warp
-    , directory
-    , filepath
-    , fs-api
+    , zlib
 
   hs-source-dirs:     src
   default-language:   GHC2024

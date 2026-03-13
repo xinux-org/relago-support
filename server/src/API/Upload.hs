@@ -7,26 +7,17 @@
 
 module API.Upload where
 
+import Codec.Compression.Zlib qualified as Zlib
 import Control.Monad
 import Control.Monad.IO.Class (MonadIO (..))
 import Data.Aeson (FromJSON, ToJSON)
+import Data.ByteString.Lazy qualified as LBS
 import Data.Kind (Type)
 import GHC.Generics (Generic)
 import Servant hiding (Param)
 import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (renameFile)
-import System.FilePath ((</>))
-import System.FS.IO.Unix (open, getSize, close)
-import System.FS.API ( OpenMode() )
--- import System
--- import System.FS.IO.Unix(open, getSize, FHandle )
--- import System.FS.API (OpenMode(..), AllowExisting (..))
--- import System.FS.IO.Handle(HandleOS)
--- import Data.Coerce (coerce)
--- import System.Unsafe ()
-import System.IO (openFile, IOMode(..))
-import System.IO qualified as SIO hiding (ReadMode)
 
 type UploadRoutes :: Type -> Type
 data UploadRoutes route = MkUploadRoutes
@@ -38,20 +29,16 @@ data Report = MkReport {logs :: FilePath} deriving stock (Show)
 instance FromMultipart Tmp Report where
   fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "logs" multipartData)
 
-
 upload :: Report -> Handler Integer
 upload r = do
   -- we can access r.logs
-  let newPath = "/home/lambdajon/workspace/xinux/relago-support/server/data/archive.zlib"
+  let newPath = "/data/archive.zlib" -- FIXME: Use absolute path
+  let jsonFilePath = "data/data.json" -- FIXME: Use absolute path
+  liftIO $ renameFile (r.logs) newPath
 
-  -- let re = open r.logs ReadMode
-  -- fd <- liftIO$ open r.logs (ReadWriteMode MustExist)
-  -- fd <- liftIO$ open r.logs (ReadMode)
+  cmp <- liftIO $ LBS.readFile newPath
 
-  -- sz <- liftIO $ getSize $ fd
-  liftIO $ do
-    -- renameFile (r.logs) newPath
-    print r
+  void $ liftIO $ LBS.writeFile jsonFilePath $ Zlib.decompress cmp
 
   return 0
 
@@ -60,6 +47,3 @@ uploadHandlers =
   MkUploadRoutes
     { _log = upload
     }
-
-
-
