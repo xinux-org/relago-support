@@ -7,32 +7,30 @@
 
 module API.Upload where
 
+import Control.Monad
+import Control.Monad.IO.Class (MonadIO (..))
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Kind (Type)
 import GHC.Generics (Generic)
 import Servant hiding (Param)
-import Servant.Server.Generic (AsServer)
-
 import Servant.Multipart
-import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad
+import Servant.Server.Generic (AsServer)
 
 type UploadRoutes :: Type -> Type
 data UploadRoutes route = MkUploadRoutes
-  { _log :: route :- "log" :> MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] Integer
+  { _log :: route :- "report" :> MultipartForm Tmp Report :> Post '[JSON] Integer
   }
   deriving stock (Generic)
 
-upload :: (MonadIO m, Num b) => MultipartData tag -> m b
-upload multipartData = do
+data Report = MkReport {logs :: FilePath} deriving stock (Show)
+instance FromMultipart Tmp Report where
+  fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "logs" multipartData)
+
+upload :: Report -> Handler Integer
+upload r = do
+  -- we can access r.logs 
   liftIO $ do
-    putStrLn "Inputs:"
-    forM_ (inputs multipartData) $ \input ->
-      print input
-    forM_ (files multipartData) $ \file -> do
-      -- let content = fdPayload file
-      putStrLn $ "Content of " ++ show (fdFileName file)
-    --   LBS.putStr content
+    print r
   return 0
 
 uploadHandlers :: UploadRoutes AsServer
