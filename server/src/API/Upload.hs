@@ -37,8 +37,6 @@ upload multipartData = do
     --   LBS.putStr content
   return 0
 
-data Ty = TT {i :: Int} deriving (FromJSON, Generic, ToJSON)
-
 uploadHandlers :: UploadRoutes AsServer
 uploadHandlers =
   MkUploadRoutes
