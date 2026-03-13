@@ -9,16 +9,52 @@ maintainer:    lambdajon42@gmail.com
 category:      Network
 build-type:    Simple
 
--- extra-doc-files: CHANGELOG.md
+extra-doc-files: CHANGELOG.md
 common warnings
-  ghc-options: -Wall
+  ghc-options: -Wall -threaded +RTS
 
 library
-  import:           warnings
-  exposed-modules:  MyLib
-  build-depends:    base
-  hs-source-dirs:   src
-  default-language: GHC2024
+  import:             warnings
+  exposed-modules:
+    API
+    API.Upload
+    API.Util
+    Server
+
+  build-depends:
+    , aeson
+    , async
+    , base
+    , bytestring
+    , http-media
+    , http-types
+    , mtl
+    , safe-exceptions
+    , servant
+    , servant-client
+    , servant-multipart
+    , servant-server
+    , stm
+    , text
+    , transformers
+    , unliftio
+    , utf8-string
+    , wai
+    , warp
+
+  hs-source-dirs:     src
+  default-language:   GHC2024
+  default-extensions:
+    BlockArguments
+    DataKinds
+    DeriveAnyClass
+    DerivingStrategies
+    ImplicitParams
+    ImportQualifiedPost
+    LambdaCase
+    OverloadedRecordDot
+    OverloadedStrings
+    RecordWildCards
 
 executable relago-server
   import:           warnings

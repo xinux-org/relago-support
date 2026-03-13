@@ -16,14 +16,24 @@ pkgs.mkShell {
     hpkgs.implicit-hie
     hpkgs.ghcid
     hpkgs.ghc
+    hpkgs.cabal-add
+    hpkgs.hpack
 
     pkgs.haskellPackages.cabal-fmt
+
+    pkgs.zlib
+    pkgs.zlib.dev
+    pkgs.libz
+    pkgs.pkg-config
+    pkgs.xz
+    # pre-commit-check.enabledPackages
   ];
 
   shellHook = ''
     echo "Welcome to development";
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.postgresql}/lib
+
   '';
   NIX_CONFIG = "extra-experimental-features = nix-command flakes";
 }
