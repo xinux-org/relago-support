@@ -28,7 +28,7 @@ instance FromMultipart Tmp Report where
 
 upload :: Report -> Handler Integer
 upload r = do
-  -- we can access r.logs 
+  -- we can access r.logs
   liftIO $ do
     print r
   return 0
