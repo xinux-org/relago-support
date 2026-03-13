@@ -10,18 +10,16 @@ module API.Upload where
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Kind (Type)
 import GHC.Generics (Generic)
-import Servant
-import Servant.Server.Generic (AsServer, AsServerT)
+import Servant hiding (Param)
+import Servant.Server.Generic (AsServer)
 
 import Servant.Multipart
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad
 
-import qualified Data.ByteString.Lazy as LBS
-
 type UploadRoutes :: Type -> Type
 data UploadRoutes route = MkUploadRoutes
-  { _log :: route :- "log" :> MultipartForm Mem (MultipartData Mem) :> Post '[JSON] Integer
+  { _log :: route :- "log" :> MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] Integer
   }
   deriving stock (Generic)
 
