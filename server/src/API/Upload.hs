@@ -18,6 +18,9 @@ import Servant hiding (Param)
 import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (renameFile)
+import Codec.Archive.Zip qualified as ZIP
+import Data.Time.Clock.POSIX
+import  Data.Map qualified as M
 
 type UploadRoutes :: Type -> Type
 data UploadRoutes route = MkUploadRoutes
@@ -25,20 +28,27 @@ data UploadRoutes route = MkUploadRoutes
   }
   deriving stock (Generic)
 
-data Report = MkReport {logs :: FilePath} deriving stock (Show)
+data Report = MkReport { fileName:: Text report :: FilePath } deriving stock (Show)
 instance FromMultipart Tmp Report where
-  fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "logs" multipartData)
+  fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "report" multipartData)
 
 upload :: Report -> Handler Integer
 upload r = do
-  -- we can access r.logs
-  let newPath = "/data/archive.zlib" -- FIXME: Use absolute path
-  let jsonFilePath = "data/data.json" -- FIXME: Use absolute path
-  liftIO $ renameFile (r.logs) newPath
+  liftIO $ do
+    tm <- getPOSIXTime
+    let dataPath = "/home/lambdajon/workspace/xinux/relago-support/data/"
+        tmStr = show tm
+        filePath = dataPath <> tmStr
 
-  cmp <- liftIO $ LBS.readFile newPath
+    renameFile (r.report) filePath
+    en <- ZIP.withArchive filePath (ZIP.unpackInto dataPath)
+    entries <- ZIP.withArchive filePath (M.keys <$> ZIP.getEntries)
 
-  void $ liftIO $ LBS.writeFile jsonFilePath $ Zlib.decompress cmp
+    print r.report
+
+  -- cmp <- liftIO $ LBS.readFile newPath
+
+  -- void $ liftIO $ LBS.writeFile jsonFilePath $ Zlib.decompress cmp
 
   return 0
 

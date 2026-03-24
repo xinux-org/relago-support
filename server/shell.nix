@@ -26,6 +26,7 @@ pkgs.mkShell {
     pkgs.libz
     pkgs.pkg-config
     pkgs.xz
+    pkgs.bzip2
     # pre-commit-check.enabledPackages
   ];
 

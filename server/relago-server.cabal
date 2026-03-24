@@ -26,6 +26,7 @@ library
     , async
     , base
     , bytestring
+    , containers
     , directory
     , filepath
     , http-media
@@ -45,6 +46,8 @@ library
     , wai-extra
     , warp
     , zlib
+    , zip
+    , time
 
   hs-source-dirs:     src
   default-language:   GHC2024
