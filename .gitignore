@@ -54,3 +54,5 @@ client/*.sw?
 client/result/
 client/test-vm.nix
 client/nixos.qcow2
+
+config.toml
