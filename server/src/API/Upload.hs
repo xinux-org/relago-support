@@ -7,21 +7,21 @@
 
 module API.Upload where
 
+import Codec.Archive.Zip qualified as ZIP
 import Codec.Compression.Zlib qualified as Zlib
 import Control.Monad
 import Control.Monad.IO.Class (MonadIO (..))
 import Data.Aeson (FromJSON, ToJSON)
 import Data.ByteString.Lazy qualified as LBS
 import Data.Kind (Type)
+import Data.Map qualified as M
+import Data.Text (Text)
+import Data.Time.Clock.POSIX
 import GHC.Generics (Generic)
 import Servant hiding (Param)
 import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (renameFile)
-import Codec.Archive.Zip qualified as ZIP
-import Data.Time.Clock.POSIX
-import  Data.Map qualified as M
-import Data.Text (Text)
 
 type UploadRoutes :: Type -> Type
 data UploadRoutes route = MkUploadRoutes
@@ -29,9 +29,10 @@ data UploadRoutes route = MkUploadRoutes
   }
   deriving stock (Generic)
 
-data Report = MkReport { report :: FilePath, fileName:: Text } deriving stock (Show)
+data Report = MkReport {report :: FilePath, fileName :: Text} deriving stock (Show)
 instance FromMultipart Tmp Report where
-  fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "report" multipartData) <*> fmap fdFileName (lookupFile "report" multipartData)
+  fromMultipart multipartData =
+    MkReport <$> fmap fdPayload (lookupFile "report" multipartData) <*> fmap fdFileName (lookupFile "report" multipartData)
 
 upload :: Report -> Handler Integer
 upload r = do

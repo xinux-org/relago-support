@@ -39,15 +39,15 @@ library
     , servant-server
     , stm
     , text
+    , time
     , transformers
     , unliftio
     , utf8-string
     , wai
     , wai-extra
     , warp
-    , zlib
     , zip
-    , time
+    , zlib
 
   hs-source-dirs:     src
   default-language:   GHC2024
