@@ -28,7 +28,7 @@ data UploadRoutes route = MkUploadRoutes
   }
   deriving stock (Generic)
 
-data Report = MkReport { fileName:: Text report :: FilePath } deriving stock (Show)
+data Report = MkReport { report :: FilePath } deriving stock (Show)
 instance FromMultipart Tmp Report where
   fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "report" multipartData)
 

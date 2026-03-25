@@ -18,6 +18,10 @@ pkgs.mkShell {
     hpkgs.ghc
     hpkgs.cabal-add
     hpkgs.hpack
+    hpkgs.bindings-libzip
+    hpkgs.bzlib
+    hpkgs.bzlib-conduit
+    # hpkgs.bzip2-clib
 
     pkgs.haskellPackages.cabal-fmt
 
@@ -27,6 +31,8 @@ pkgs.mkShell {
     pkgs.pkg-config
     pkgs.xz
     pkgs.bzip2
+    pkgs.libzip
+    pkgs.lbzip2
     # pre-commit-check.enabledPackages
   ];
 
@@ -34,6 +40,10 @@ pkgs.mkShell {
     echo "Welcome to development";
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.postgresql}/lib
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.libzip}/lib
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.lbzip2}/lib
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.bzip2}/lib
+
 
   '';
   NIX_CONFIG = "extra-experimental-features = nix-command flakes";
