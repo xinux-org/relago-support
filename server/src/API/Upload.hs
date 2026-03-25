@@ -21,6 +21,7 @@ import System.Directory (renameFile)
 import Codec.Archive.Zip qualified as ZIP
 import Data.Time.Clock.POSIX
 import  Data.Map qualified as M
+import Data.Text (Text)
 
 type UploadRoutes :: Type -> Type
 data UploadRoutes route = MkUploadRoutes
@@ -28,9 +29,9 @@ data UploadRoutes route = MkUploadRoutes
   }
   deriving stock (Generic)
 
-data Report = MkReport { report :: FilePath } deriving stock (Show)
+data Report = MkReport { report :: FilePath, fileName:: Text } deriving stock (Show)
 instance FromMultipart Tmp Report where
-  fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "report" multipartData)
+  fromMultipart multipartData = MkReport <$> fmap fdPayload (lookupFile "report" multipartData) <*> fmap fdFileName (lookupFile "report" multipartData)
 
 upload :: Report -> Handler Integer
 upload r = do
@@ -44,7 +45,7 @@ upload r = do
     en <- ZIP.withArchive filePath (ZIP.unpackInto dataPath)
     entries <- ZIP.withArchive filePath (M.keys <$> ZIP.getEntries)
 
-    print r.report
+    print r.fileName
 
   -- cmp <- liftIO $ LBS.readFile newPath
 
