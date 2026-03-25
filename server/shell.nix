@@ -21,6 +21,7 @@ pkgs.mkShell {
     hpkgs.bindings-libzip
     hpkgs.bzlib
     hpkgs.bzlib-conduit
+    hpkgs.bzip2-clib
     # hpkgs.bzip2-clib
 
     pkgs.haskellPackages.cabal-fmt
@@ -32,7 +33,8 @@ pkgs.mkShell {
     pkgs.xz
     pkgs.bzip2
     pkgs.libzip
-    pkgs.lbzip2
+    # pkgs.lbzip2
+    # pkgs.bzip3
     # pre-commit-check.enabledPackages
   ];
 
@@ -40,9 +42,10 @@ pkgs.mkShell {
     echo "Welcome to development";
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.postgresql}/lib
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.libzip}/lib
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.lbzip2}/lib
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.bzip2}/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.libzip}/lib
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.bzip3}/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.bzip2}/lib
+    export LIBRARY_PATH=$LIBRARY_PATH:${pkgs.bzip2}/lib
 
 
   '';
