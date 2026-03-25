@@ -9,6 +9,7 @@ module API.Upload where
 
 import Codec.Archive.Zip qualified as ZIP
 import Codec.Compression.Zlib qualified as Zlib
+import Config (AppConfig, Config (dataDir))
 import Control.Monad
 import Control.Monad.IO.Class (MonadIO (..))
 import Data.Aeson (FromJSON, ToJSON)
@@ -34,19 +35,21 @@ instance FromMultipart Tmp Report where
   fromMultipart multipartData =
     MkReport <$> fmap fdPayload (lookupFile "report" multipartData) <*> fmap fdFileName (lookupFile "report" multipartData)
 
-upload :: Report -> Handler Integer
+upload :: (?config :: Config) => Report -> Handler Integer
+-- upload ::(AppConfig) =>  Report -> Handler Integer
 upload r = do
+  let c = ?config
   liftIO $ do
     tm <- getPOSIXTime
-    let dataPath = "/home/lambdajon/workspace/xinux/relago-support/data/"
+    let dataPath = c.dataDir
         tmStr = show tm
         filePath = dataPath <> tmStr
 
     renameFile (r.report) filePath
     en <- ZIP.withArchive filePath (ZIP.unpackInto dataPath)
     entries <- ZIP.withArchive filePath (M.keys <$> ZIP.getEntries)
-
-    print r.fileName
+    
+    print r
 
   -- cmp <- liftIO $ LBS.readFile newPath
 
@@ -54,7 +57,8 @@ upload r = do
 
   return 0
 
-uploadHandlers :: UploadRoutes AsServer
+uploadHandlers :: (AppConfig) => UploadRoutes AsServer
+-- uploadHandlers ::(?config::Config) =>  UploadRoutes AsServer
 uploadHandlers =
   MkUploadRoutes
     { _log = upload

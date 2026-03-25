@@ -9,6 +9,7 @@ module API where
 
 import API.Upload
 import API.Util
+import Config
 import Data.Kind (Type)
 import Servant
 import Servant.API.Generic
@@ -28,19 +29,19 @@ data ApiServer route = MkApiServer
 apiProxy :: Proxy (ToServantApi API)
 apiProxy = Proxy
 
-apiHandlers :: API AsServer
+apiHandlers :: (AppConfig) => API AsServer
 apiHandlers =
   MkAPI
     { upload = uploadHandlers
     }
 
-mkServer :: ApiServer AsServer
+mkServer :: (AppConfig) => ApiServer AsServer
 mkServer =
   MkApiServer
     { api = apiHandlers
     }
 
-runApi :: Application
+runApi :: (AppConfig) => Application
 runApi =
   serveWithContext
     (Proxy @(ToServantApi ApiServer))

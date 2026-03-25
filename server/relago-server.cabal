@@ -19,6 +19,7 @@ library
     API
     API.Upload
     API.Util
+    Config
     Server
 
   build-depends:
@@ -40,6 +41,7 @@ library
     , stm
     , text
     , time
+    , toml-parser
     , transformers
     , unliftio
     , utf8-string
