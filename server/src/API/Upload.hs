@@ -41,13 +41,13 @@ type Report :: Type
 data Report = MkReport {report :: !FilePath, fileName :: !Text} deriving stock (Show)
 instance FromMultipart Tmp Report where
   fromMultipart multipartData =
-    MkReport <$> fmap fdPayload (lookupFile "report" multipartData) <*> fmap fdFileName (lookupFile "report" multipartData)
+    let f = lookupFile "report" multipartData in (MkReport . fdPayload <$> f) <*> (fdFileName <$> f)
 
 upload :: (?config :: Config) => Report -> Handler Integer
 upload r = do
   let c = ?config
   liftIO $ do
-    tm <- getPOSIXTime
+    tm <- getPOSIXTime -- FIXME: Use something unique identificator generator for rename archive file
     let dataPath = c.dataDir
         archiveFileName = show tm
         archiveFile = addExtension archiveFileName "zip"
@@ -55,11 +55,11 @@ upload r = do
         unzipFolder = dataPath </> archiveFileName
 
     renameFile r.report filePath
-    void $ ZIP.withArchive filePath (ZIP.unpackInto unzipFolder)
+    void $ ZIP.withArchive filePath (ZIP.unpackInto unzipFolder) -- Unpack zip archive
     entries <- ZIP.withArchive filePath (M.keys <$> ZIP.getEntries)
 
     let jr = find (isExtensionOf "zlib") $ fmap ZIP.unEntrySelector entries
-    case jr of
+    case jr of -- FIXME: simlify code
       Just j -> do
         let fname = dropExtension j
         cmp <- LBS.readFile $ unzipFolder </> j
@@ -67,6 +67,7 @@ upload r = do
       Nothing -> print "Journal not found" -- FIXME: Handle error
     print r
   return 0
+
 
 uploadHandlers :: (AppConfig) => UploadRoutes AsServer
 uploadHandlers =
