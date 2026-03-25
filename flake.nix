@@ -27,7 +27,13 @@
         pkgs,
         ...
       }: let
-        hpkgs = pkgs.haskell.packages.ghc910;
+        hpkgs = pkgs.haskell.packages."ghc912".override {
+          overrides = self: super: {
+            bz2 = hlib.dontCheck (hlib.doJailbreak super.bz2);
+            bzlib-conduit = hlib.dontCheck (hlib.doJailbreak super.bzlib-conduit);
+
+          };
+        };
         hlib = pkgs.haskell.lib;
 
         defaultShell = pkgs.callPackage ./shell.nix {inherit pkgs;};
