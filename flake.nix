@@ -20,7 +20,7 @@
 
       flake = {
         nixosModules = {
-          client = import ./client/module.nix self;
+          # client = import ./client/module.nix self;
           server = import ./server/module.nix self;
         };
       };
@@ -43,7 +43,7 @@
         clientShell = pkgs.callPackage ./client/shell.nix {inherit pkgs;};
 
         serverPkg = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
-        clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
+        # clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
       in {
         devShells.default = defaultShell;
 
@@ -51,7 +51,7 @@
         devShells."client" = defaultShell // clientShell;
 
         packages."server" = serverPkg;
-        packages."client" = clientPkg;
+        # packages."client" = clientPkg;
       };
     };
 }
