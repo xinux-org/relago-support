@@ -6,7 +6,7 @@ flake: {
 }: let
   inherit (lib) mkEnableOption mkOption mkIf mkMerge types;
 
-  package = flake.packages.${pkgs.stdenv.hostPlatform.system};
+  package = flake.packages.${pkgs.stdenv.hostPlatform.system}.server;
   packageName = package.pname;
   cfg = config.services.${packageName};
 
