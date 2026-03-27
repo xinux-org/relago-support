@@ -10,7 +10,6 @@ pkgs.mkShell {
     treefmt
     just
     nixd
-
   ];
 
   NIX_CONFIG = "extra-experimental-features = nix-command flakes";

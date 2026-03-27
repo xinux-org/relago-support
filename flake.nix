@@ -19,7 +19,10 @@
       ];
 
       flake = {
-        nixosModules.client = import ./client/module.nix self;
+        nixosModules = {
+          client = import ./client/module.nix self;
+          server = import ./server/module.nix self;
+        };
       };
 
       perSystem = {
@@ -31,7 +34,6 @@
           overrides = self: super: {
             bz2 = hlib.dontCheck (hlib.doJailbreak super.bz2);
             bzlib-conduit = hlib.dontCheck (hlib.doJailbreak super.bzlib-conduit);
-
           };
         };
         hlib = pkgs.haskell.lib;
