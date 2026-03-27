@@ -45,27 +45,27 @@ flake: {
   };
 in {
   options = with lib; {
-    # services.${packageName} = {
-    #   enable = mkEnableOption ''
-    #     ${packageName} running.
-    #   '';
+    services.${packageName} = {
+      enable = mkEnableOption ''
+        ${packageName} running.
+      '';
 
-    #   dataDir = mkOption {
-    #     type = types.str;
-    #     default = "/var/lib/${packageName}";
-    #     description = lib.mdDoc ''
-    #       The path where ${packageName} keeps its config, data, and logs.
-    #     '';
-    #   };
+      # dataDir = mkOption {
+      #   type = types.str;
+      #   default = "/var/lib/${packageName}";
+      #   description = lib.mdDoc ''
+      #     The path where ${packageName} keeps its config, data, and logs.
+      #   '';
+      # };
 
-    #   port = mkOption {
-    #     type = types.int;
-    #     default = 4242;
-    #     description = lib.mdDoc ''
-    #       The port ${packageName} listen.
-    #     '';
-    #   };
-    # };
+      port = mkOption {
+        type = types.int;
+        default = 4242;
+        description = lib.mdDoc ''
+          The port ${packageName} listen.
+        '';
+      };
+    };
     config = mkMerge [service];
   };
 }
