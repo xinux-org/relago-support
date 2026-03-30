@@ -18,6 +18,7 @@ import Servant.Server.Generic
 type API :: Type -> Type
 data API route = MkAPI
   { upload :: route :- "upload" :> NamedRoutes UploadRoutes
+  , health :: route :- "health" :> Get '[JSON] Integer
   }
   deriving stock (Generic)
 
@@ -33,7 +34,12 @@ apiHandlers :: (AppConfig) => API AsServer
 apiHandlers =
   MkAPI
     { upload = uploadHandlers
+    , health = heal
     }
+
+heal :: Handler Integer
+heal =
+  return 1
 
 mkServer :: (AppConfig) => ApiServer AsServer
 mkServer =

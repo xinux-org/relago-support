@@ -95,7 +95,7 @@ let
         ];
         DeviceAllow = [ "/dev/stdin r" ];
         DevicePolicy = "strict";
-        IPAddressAllow = "localhost";
+        # IPAddressAllow = "localhost";
         LockPersonality = true;
         PrivateDevices = true;
         PrivateTmp = true;
