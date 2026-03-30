@@ -1,21 +1,39 @@
-flake: {
+flake:
+{
   config,
   lib,
   pkgs,
   ...
-}: let
-  inherit (lib) mkEnableOption mkOption mkIf mkMerge types;
+}:
+let
+  inherit (lib)
+    mkEnableOption
+    mkOption
+    mkIf
+    mkMerge
+    types
+    ;
 
   package = flake.packages.${pkgs.stdenv.hostPlatform.system}.server;
   packageName = package.pname;
   cfg = config.services.${packageName};
 
   service = mkIf cfg.enable {
+    users.users.${cfg.user} = {
+      description = "Relago-support user";
+      isSystemUser = true;
+      group = cfg.group;
+    };
+
+    users.groups.${cfg.group} = { };
+
     systemd.services."${packageName}" = {
       description = "Welcome to ${packageName} ";
-      wantedBy = ["multi-user.target"];
+      wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
+        User = cfg.user;
+        Group = cfg.group;
         ExecStart = "${lib.getBin package}/bin/${packageName}";
 
         Restart = "always";
@@ -43,7 +61,8 @@ flake: {
       };
     };
   };
-in {
+in
+{
   options = with lib; {
     services.${packageName} = {
       enable = mkEnableOption ''
@@ -65,7 +84,19 @@ in {
           The port ${packageName} listen.
         '';
       };
+
+      user = mkOption {
+        type = types.str;
+        default = "relago-support";
+        description = "User for running system + access keys";
+      };
+
+      group = mkOption {
+        type = types.str;
+        default = "relago-support";
+        description = "Group for running system + acess keys";
+      };
     };
-    config = mkMerge [service];
   };
+  config = mkMerge [ service ];
 }
