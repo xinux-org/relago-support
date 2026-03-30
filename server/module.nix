@@ -20,46 +20,121 @@ let
 
   service = mkIf cfg.enable {
     users.users.${cfg.user} = {
-      description = "Relago-support user";
+      description = "${packageName} user";
       isSystemUser = true;
       group = cfg.group;
+      home = cfg.dataDir;
+      useDefaultShell = true;
     };
 
     users.groups.${cfg.group} = { };
 
+    systemd.services."${packageName}-config" = {
+      wantedBy = [ "${packageName}.target" ];
+      partOf = [ "${packageName}.target" ];
+
+      serviceConfig = {
+        Type = "oneshot";
+        User = cfg.user;
+        Group = cfg.group;
+        TimeoutSec = "infinity";
+        Restart = "on-failure";
+        WorkingDirectory = "${cfg.dataDir}";
+        RemainAfterExit = true;
+
+        ExecStartPre =
+          let
+            preStartFullPrivileges = ''
+              set -o errexit -o pipefail -o nounset
+              shopt -s dotglob nullglob inherit_errexit
+
+              chown -R --no-dereference '${cfg.user}':'${cfg.group}' '${cfg.dataDir}'
+              chmod -R u+rwX,g+rX,o-rwx '${cfg.dataDir}'
+            '';
+          in
+          "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
+
+        ExecStart = pkgs.writeShellScript "${packageName}-config" ''
+          set -o errexit -o pipefail -o nounset
+          shopt -s inherit_errexit
+
+          umask u=rwx,g=rx,o=
+
+          # Write configuration file for server
+          cp -f ${toml-config} ${cfg.dataDir}/config.toml
+        '';
+      };
+    };
+
     systemd.services."${packageName}" = {
-      description = "Welcome to ${packageName} ";
+      description = "Welcome to ${packageName}";
+
       wantedBy = [ "multi-user.target" ];
+      after = [
+        "network.target"
+        "${packageName}-config.service"
+      ];
+      wants = [ "network-online.target" ];
+      path = [ cfg.package ];
 
       serviceConfig = {
         User = cfg.user;
         Group = cfg.group;
-        ExecStart = "${lib.getBin package}/bin/${packageName}";
-
         Restart = "always";
 
-        DevicePolicy = "closed";
-        KeyringMode = "private";
-        LockPersonality = "yes";
-        MemoryDenyWriteExecute = "yes";
-        NoNewPrivileges = "yes";
-        PrivateDevices = "yes";
-        PrivateTmp = "true";
-        ProtectClock = "yes";
-        ProtectControlGroups = "yes";
-        ProtectHome = "read-only";
-        ProtectHostname = "yes";
-        ProtectKernelLogs = "yes";
-        ProtectKernelModules = "yes";
-        ProtectKernelTunables = "yes";
-        ProtectProc = "invisible";
-        ProtectSystem = "full";
-        RestrictNamespaces = "yes";
-        RestrictRealtime = "yes";
-        RestrictSUIDSGID = "yes";
+        ExecStart = "${lib.getBin package}/bin/${packageName}";
+        ExecReload = "${pkgs.coreutils}/bin/kill -s HUP $MAINPID";
+
+        StateDirectory = cfg.user;
+        StateDirectoryMode = "0750";
+
+        CapabilityBoundingSet = [
+          "AF_NETLINK"
+          "AF_INET"
+          "AF_INET6"
+        ];
+        DeviceAllow = [ "/dev/stdin r" ];
+        DevicePolicy = "strict";
+        IPAddressAllow = "localhost";
+        LockPersonality = true;
+        PrivateDevices = true;
+        PrivateTmp = true;
+        PriavteUsers = false;
+        ProtectClock = true;
+        ProtectControlGroups = true;
+        ProtectHome = true;
+        ProtectHostname = true;
+        ProtectKernelLogs = true;
+        ProtectKernelTunables = true;
+        ProtectSystem = "strict";
+        ReadOnlyPaths = [ "/" ];
+        RemoveIPC = true;
+        RestrictAddressFamilies = [
+          "AF_NETLINK"
+          "AF_INET"
+          "AF_INET6"
+          "AF_UNIX"
+        ];
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
         SystemCallArchitectures = "native";
+        SystemCallFilter = [
+          "@system-service"
+          "~@privileged"
+          "~@resources"
+          "@pkey"
+        ];
+        UMask = "0027";
       };
     };
+  };
+
+  toml = pkgs.formats.toml { };
+
+  toml-config = toml.generate "config.toml" {
+    tmpDir = cfg.tmpDir;
+    port = cfg.port;
   };
 in
 {
@@ -77,6 +152,34 @@ in
       #   '';
       # };
 
+      user = mkOption {
+        type = types.str;
+        default = "${packageName}";
+        description = "User for running system + access keys";
+      };
+
+      group = mkOption {
+        type = types.str;
+        default = "${packageName}";
+        description = "Group for running system + acess keys";
+      };
+
+      dataDir = mkOption {
+        type = types.str;
+        default = "/var/lib/${packageName}";
+        description = lib.mdDoc ''
+          The path where ${packageName} keeps its config, data, and logs.
+        '';
+      };
+
+      tmpDir = mkOption {
+        type = types.str;
+        default = "/var/lib/${packageName}/tmp";
+        description = lib.mdDoc ''
+          The path where ${packageName} keeps its tmp files.
+        '';
+      };
+
       port = mkOption {
         type = types.int;
         default = 4242;
@@ -85,16 +188,12 @@ in
         '';
       };
 
-      user = mkOption {
-        type = types.str;
-        default = "relago-support";
-        description = "User for running system + access keys";
-      };
-
-      group = mkOption {
-        type = types.str;
-        default = "relago-support";
-        description = "Group for running system + acess keys";
+      package = mkOption {
+        type = types.package;
+        default = package;
+        description = ''
+          Compiled ${packageName} package to use with the service.
+        '';
       };
     };
   };
