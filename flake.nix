@@ -19,7 +19,10 @@
       ];
 
       flake = {
-        nixosModules.client = import ./client/module.nix self;
+        nixosModules = {
+          # client = import ./client/module.nix self;
+          server = import ./server/module.nix self;
+        };
       };
 
       perSystem = {
@@ -27,7 +30,12 @@
         pkgs,
         ...
       }: let
-        hpkgs = pkgs.haskell.packages.ghc910;
+        hpkgs = pkgs.haskell.packages."ghc912".override {
+          overrides = self: super: {
+            bz2 = hlib.dontCheck (hlib.doJailbreak super.bz2);
+            bzlib-conduit = hlib.dontCheck (hlib.doJailbreak super.bzlib-conduit);
+          };
+        };
         hlib = pkgs.haskell.lib;
 
         defaultShell = pkgs.callPackage ./shell.nix {inherit pkgs;};
@@ -35,7 +43,7 @@
         clientShell = pkgs.callPackage ./client/shell.nix {inherit pkgs;};
 
         serverPkg = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
-        clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
+        # clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
       in {
         devShells.default = defaultShell;
 
@@ -43,7 +51,7 @@
         devShells."client" = defaultShell // clientShell;
 
         packages."server" = serverPkg;
-        packages."client" = clientPkg;
+        # packages."client" = clientPkg;
       };
     };
 }
