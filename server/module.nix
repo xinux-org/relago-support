@@ -82,7 +82,7 @@ let
         Group = cfg.group;
         Restart = "always";
 
-        ExecStart = "${lib.getBin package}/bin/${packageName}";
+        ExecStart = "${lib.getBin package}/bin/${packageName} -c ${toml-config}";
         ExecReload = "${pkgs.coreutils}/bin/kill -s HUP $MAINPID";
 
         StateDirectory = cfg.user;
@@ -133,7 +133,7 @@ let
   toml = pkgs.formats.toml { };
 
   toml-config = toml.generate "config.toml" {
-    tmpDir = cfg.tmpDir;
+    dataDir = cfg.tmpDir;
     port = cfg.port;
   };
 in
