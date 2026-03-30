@@ -99,7 +99,7 @@ let
         LockPersonality = true;
         PrivateDevices = true;
         PrivateTmp = true;
-        PriavteUsers = false;
+        PrivateUsers = false;
         ProtectClock = true;
         ProtectControlGroups = true;
         ProtectHome = true;
