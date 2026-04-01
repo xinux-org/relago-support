@@ -6,44 +6,56 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    flake-parts,
-    ...
-  } @ inputs:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-parts,
+      ...
+    }@inputs:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
         "aarch64-darwin"
       ];
 
       flake = {
-        nixosModules.client = import ./client/module.nix self;
+        nixosModules = {
+          # client = import ./client/module.nix self;
+          server = import ./server/module.nix self;
+        };
       };
 
-      perSystem = {
-        system,
-        pkgs,
-        ...
-      }: let
-        hpkgs = pkgs.haskell.packages.ghc910;
-        hlib = pkgs.haskell.lib;
+      perSystem =
+        {
+          system,
+          pkgs,
+          ...
+        }:
+        let
+          hpkgs = pkgs.haskell.packages."ghc912".override {
+            overrides = self: super: {
+              bz2 = hlib.dontCheck (hlib.doJailbreak super.bz2);
+              bzlib-conduit = hlib.dontCheck (hlib.doJailbreak super.bzlib-conduit);
+            };
+          };
+          hlib = pkgs.haskell.lib;
 
-        defaultShell = pkgs.callPackage ./shell.nix {inherit pkgs;};
-        serverShell = pkgs.callPackage ./server/shell.nix {inherit pkgs hpkgs hlib;};
-        clientShell = pkgs.callPackage ./client/shell.nix {inherit pkgs;};
+          defaultShell = pkgs.callPackage ./shell.nix { inherit pkgs; };
+          serverShell = pkgs.callPackage ./server/shell.nix { inherit pkgs hpkgs hlib; };
+          clientShell = pkgs.callPackage ./client/shell.nix { inherit pkgs; };
 
-        serverPkg = pkgs.callPackage ./server/package.nix {inherit pkgs hpkgs hlib;};
-        clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
-      in {
-        devShells.default = defaultShell;
+          serverPkg = pkgs.callPackage ./server/package.nix { inherit pkgs hpkgs hlib; };
+          # clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
+        in
+        {
+          devShells.default = defaultShell;
 
-        devShells."server" = defaultShell // serverShell;
-        devShells."client" = defaultShell // clientShell;
+          devShells."server" = defaultShell // serverShell;
+          devShells."client" = defaultShell // clientShell;
 
-        packages."server" = serverPkg;
-        packages."client" = clientPkg;
-      };
+          packages."server" = serverPkg;
+          # packages."client" = clientPkg;
+        };
     };
 }

@@ -1,26 +1,71 @@
-cabal-version: 3.0
-name:          relago-server
-version:       0.1.0.0
-homepage:      https://github.com/xinux-org/relago-support
-license:       AGPL-3.0-or-later
-license-file:  LICENSE
-author:        lambdajon
-maintainer:    lambdajon42@gmail.com
-category:      Network
-build-type:    Simple
+cabal-version:   3.0
+name:            relago-server
+version:         0.1.0.0
+homepage:        https://github.com/xinux-org/relago-support
+license:         AGPL-3.0-or-later
+license-file:    LICENSE
+author:          lambdajon
+maintainer:      lambdajon42@gmail.com
+category:        Network
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
 
--- extra-doc-files: CHANGELOG.md
 common warnings
-  ghc-options: -Wall
+  ghc-options: -Wall -threaded
 
 library
-  import:           warnings
+  import:             warnings
   exposed-modules:
-    MyLib
-  build-depends:    base
-  hs-source-dirs:
-    src
-  default-language: GHC2024
+    API
+    API.Upload
+    API.Util
+    Config
+    Server
+
+  build-depends:
+    , aeson
+    , async
+    , base
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , http-media
+    , http-types
+    , lens
+    , mtl
+    , optparse-generic
+    , safe-exceptions
+    , servant
+    , servant-client
+    , servant-multipart
+    , servant-server
+    , stm
+    , text
+    , time
+    , toml-parser
+    , transformers
+    , unliftio
+    , utf8-string
+    , wai
+    , wai-extra
+    , warp
+    , zip
+    , zlib
+
+  hs-source-dirs:     src
+  default-language:   GHC2024
+  default-extensions:
+    BlockArguments
+    DataKinds
+    DeriveAnyClass
+    DerivingStrategies
+    ImplicitParams
+    ImportQualifiedPost
+    LambdaCase
+    OverloadedRecordDot
+    OverloadedStrings
+    RecordWildCards
 
 executable relago-server
   import:           warnings

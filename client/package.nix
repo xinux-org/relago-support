@@ -1,26 +1,48 @@
+<<<<<<< HEAD
 flake:
 { config, lib, pkgs, ... }:
 let
+=======
+flake: {
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+>>>>>>> fileupload
   cfg = config.services.relago-website;
 
   defaultPkg = flake.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   site = cfg.package;
+<<<<<<< HEAD
 in
 {
+=======
+in {
+>>>>>>> fileupload
   options.services.relago-website = with lib; {
     enable = mkEnableOption "Relago website (static SPA served by nginx)";
 
     domain = mkOption {
       type = types.str;
+<<<<<<< HEAD
       example = "relago.uz";
+=======
+      example = "reports.xinux.uz";
+>>>>>>> fileupload
       description = "Primary domain name.";
     };
 
     aliases = mkOption {
       type = with types; listOf str;
+<<<<<<< HEAD
       default = [ ];
       example = [ "www.relago.uz" ];
+=======
+      default = [];
+      example = ["reports.xinux.uz"];
+>>>>>>> fileupload
       description = "Additional server names.";
     };
 

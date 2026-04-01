@@ -4,6 +4,8 @@
 result
 .pre-commit-config.yaml
 
+data/*
+
 server/dist
 server/dist-*
 server/cabal-dev
@@ -52,3 +54,8 @@ client/*.sw?
 client/result/
 client/test-vm.nix
 client/nixos.qcow2
+<<<<<<< HEAD
+=======
+
+config.toml
+>>>>>>> fileupload

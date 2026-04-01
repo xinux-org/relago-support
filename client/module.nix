@@ -26,14 +26,22 @@ in {
       domain = mkOption {
         type = with types; nullOr str;
         default = null;
+<<<<<<< HEAD
         example = "relago.uz";
+=======
+        example = "reports.xinux.uz";
+>>>>>>> fileupload
         description = "Domain to use while adding configuration to web proxy server";
       };
 
       aliases = mkOption {
         type = with types; listOf str;
         default = [];
+<<<<<<< HEAD
         example = ["www.relago.uz"];
+=======
+        example = ["reports.xinux.uz"];
+>>>>>>> fileupload
         description = "Additional server names / aliaes.";
       };
 
@@ -84,7 +92,11 @@ in {
       type = types.package;
       default = server;
       description = ''
+<<<<<<< HEAD
         Packaged relago.uz website contents for service.
+=======
+        Packaged reports.xinux.uz website contents for service.
+>>>>>>> fileupload
       '';
     };
   };
