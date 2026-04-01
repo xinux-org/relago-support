@@ -55,7 +55,12 @@ client/result/
 client/test-vm.nix
 client/nixos.qcow2
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 config.toml
 >>>>>>> fileupload
+=======
+
+config.toml
+>>>>>>> 6e52a5e4af44821b7ff90b5de31b158ea754b6b0
