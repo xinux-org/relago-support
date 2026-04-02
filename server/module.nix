@@ -51,7 +51,7 @@ let
 
   service = mkIf cfg.enable {
     users.users.${cfg.user} = {
-      description = "${packageName} user";
+      description = "relago-server user";
       isSystemUser = true;
       group = cfg.group;
       home = cfg.dataDir;
@@ -60,9 +60,9 @@ let
 
     users.groups.${cfg.group} = { };
 
-    systemd.services."${packageName}-config" = {
-      wantedBy = [ "${packageName}.target" ];
-      partOf = [ "${packageName}.target" ];
+    systemd.services."relago-server-config" = {
+      wantedBy = [ "relago-server.target" ];
+      partOf = [ "relago-server.target" ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -97,16 +97,21 @@ let
       };
     };
 
-    systemd.services."${packageName}" = {
-      description = "Welcome to ${packageName}";
+    systemd.services.relago-server = {
+      description = "Welcome to relago-server";
 
-      wantedBy = [ "multi-user.target" ];
+      # environment = {
+      #   PORT = "${toString cfg.port}";
+      #   HOSTNAME = cfg.host;
+      # };
+
       after = [
-        "network.target"
-        "${packageName}-config.service"
+        "network-online.target"
+        "relago-server-config.service"
       ];
       wants = [ "network-online.target" ];
-      path = [ cfg.package ];
+      wantedBy = [ "multi-user.target" ];
+      # path = [ cfg.package ];
 
       serviceConfig = {
         User = cfg.user;
@@ -172,13 +177,13 @@ let
     warnings = [
       (lib.mkIf (
         cfg.proxy.enable && cfg.proxy.domain == null
-      ) "services.xinux.website.proxy.domain must be set in order to properly generate certificate!")
+      ) "services.relago-server.proxy.domain must be set in order to properly generate certificate!")
     ];
   };
 in
 {
   options = with lib; {
-    services.${packageName} = {
+    services.relago-server = {
       enable = mkEnableOption ''
         ${packageName} running.
       '';
@@ -192,7 +197,7 @@ in
           type = with types; nullOr str;
           default = null;
           example = "cocomelon.uz";
-          description = "Domain to usse while adding configurations to web proxy server";
+          description = "Domain to use while adding configurations to web proxy server";
         };
 
         aliases = mkOption {
@@ -228,29 +233,29 @@ in
 
       user = mkOption {
         type = types.str;
-        default = "${packageName}";
+        default = "relago-server";
         description = "User for running system + access keys";
       };
 
       group = mkOption {
         type = types.str;
-        default = "${packageName}";
+        default = "relago-server";
         description = "Group for running system + acess keys";
       };
 
       dataDir = mkOption {
         type = types.str;
-        default = "/var/lib/${packageName}";
+        default = "/var/lib/relago-server";
         description = lib.mdDoc ''
-          The path where ${packageName} keeps its config, data, and logs.
+          The path where relago-server keeps its config, data, and logs.
         '';
       };
 
       tmpDir = mkOption {
         type = types.str;
-        default = "/var/lib/${packageName}/tmp";
+        default = "/var/lib/relago-server/tmp";
         description = lib.mdDoc ''
-          The path where ${packageName} keeps its tmp files.
+          The path where relago-server keeps its tmp files.
         '';
       };
 
@@ -258,7 +263,7 @@ in
         type = types.package;
         default = package;
         description = ''
-          Compiled ${packageName} package to use with the service.
+          Compiled relago-server package to use with the service.
         '';
       };
     };
