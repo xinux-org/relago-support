@@ -18,6 +18,23 @@ let
   packageName = package.pname;
   cfg = config.services.${packageName};
 
+  nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
+    services.nginx.virtualHosts =
+      lib.debug.traceif (isNull cfg.proxy.domain)
+        "proxy.domain can't be null, please specify it properly!"
+        {
+          "${cfg.proxy.domain}" = {
+            addSSL = true;
+            enableACME = true;
+            serverAliases = cfg.proxy.aliases;
+            location."/" = {
+              proxyPass = "http://127.0.0.1:${toString cfg.port}";
+              proxyWebsockets = true;
+            };
+          };
+        };
+  };
+
   service = mkIf cfg.enable {
     users.users.${cfg.user} = {
       description = "${packageName} user";
@@ -136,6 +153,14 @@ let
     dataDir = cfg.tmpDir;
     port = cfg.port;
   };
+
+  asserts = lib.mkIf cfg.enable {
+    warnings = [
+      (lib.mkIf (
+        cfg.proxy.enable && cfg.proxy.domain == null
+      ) "services.xinux.website.proxy.domain must be set in order to properly generate certificate!")
+    ];
+  };
 in
 {
   options = with lib; {
@@ -144,13 +169,43 @@ in
         ${packageName} running.
       '';
 
-      # dataDir = mkOption {
-      #   type = types.str;
-      #   default = "/var/lib/${packageName}";
-      #   description = lib.mdDoc ''
-      #     The path where ${packageName} keeps its config, data, and logs.
-      #   '';
-      # };
+      proxy = {
+        enable = mkEnableOption ''
+          Proxy reversed method of deployment
+        '';
+
+        domain = mkOption {
+          type = with types; nullOr str;
+          default = null;
+          example = "cocomelon.uz";
+          description = "Domain to usse while adding configurations to web proxy server";
+        };
+
+        aliases = mkOption {
+          type = with types; listOf str;
+          default = [ ];
+          example = [ "www.cocomelon.uz" ];
+          description = "List of domain aliases to add to domain";
+        };
+
+        proxy = mkOption {
+          type = with types; nullOr "nginx";
+          default = "nginx";
+          description = "Proxy reverse software for hosting website";
+        };
+      };
+
+      host = mkOption {
+        type = types.str;
+        default = "127.0.0.1";
+        description = "Hostname for relago server to bind";
+      };
+
+      port = mkOption {
+        type = types.int;
+        default = 42424;
+        description = "Port to use for passing over proxy";
+      };
 
       user = mkOption {
         type = types.str;
@@ -180,14 +235,6 @@ in
         '';
       };
 
-      port = mkOption {
-        type = types.int;
-        default = 4242;
-        description = lib.mdDoc ''
-          The port ${packageName} listen.
-        '';
-      };
-
       package = mkOption {
         type = types.package;
         default = package;
@@ -197,5 +244,9 @@ in
       };
     };
   };
-  config = mkMerge [ service ];
+  config = mkMerge [
+    asserts
+    service
+    nginx
+  ];
 }
