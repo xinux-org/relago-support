@@ -18,6 +18,20 @@ let
   packageName = package.pname;
   cfg = config.services.${packageName};
 
+  caddy = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "caddy") {
+    services.caddy.virtualHosts =
+      lib.debug.traceIf (builtins.isNull cfg.proxy.domain)
+        "proxy.domain can't be null, please specicy it properly!"
+        {
+          "${cfg.proxy.domain}" = {
+            serverAliases = cfg.proxy.aliases;
+            extraConfig = ''
+              reverse_proxy 127.0.0.1:${toString cfg.port}
+            '';
+          };
+        };
+  };
+
   nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
     services.nginx.virtualHosts =
       lib.debug.traceif (isNull cfg.proxy.domain)
@@ -189,8 +203,13 @@ in
         };
 
         proxy = mkOption {
-          type = with types; nullOr "nginx";
-          default = "nginx";
+          type =
+            with types;
+            nullOr (enum [
+              "nginx"
+              "caddy"
+            ]);
+          default = "caddy";
           description = "Proxy reverse software for hosting website";
         };
       };
@@ -247,6 +266,7 @@ in
   config = mkMerge [
     asserts
     service
+    caddy
     nginx
   ];
 }
