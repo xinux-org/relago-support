@@ -20,7 +20,7 @@ let
 
   caddy = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "caddy") {
     services.caddy.virtualHosts =
-      lib.debug.traceIf (builtins.isNull cfg.proxy.domain)
+      lib.debug.traceIf (isNull cfg.proxy.domain)
         "proxy.domain can't be null, please specicy it properly!"
         {
           "${cfg.proxy.domain}" = {
@@ -34,7 +34,7 @@ let
 
   nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
     services.nginx.virtualHosts =
-      lib.debug.traceif (isNull cfg.proxy.domain)
+      lib.debug.traceIf (isNull cfg.proxy.domain)
         "proxy.domain can't be null, please specify it properly!"
         {
           "${cfg.proxy.domain}" = {
