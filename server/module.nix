@@ -1,12 +1,11 @@
-flake:
-{
+flake: {
   config,
   lib,
   pkgs,
   ...
-}:
-let
-  inherit (lib)
+}: let
+  inherit
+    (lib)
     mkEnableOption
     mkOption
     mkIf
@@ -21,32 +20,32 @@ let
   caddy = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "caddy") {
     services.caddy.virtualHosts =
       lib.debug.traceIf (isNull cfg.proxy.domain)
-        "proxy.domain can't be null, please specicy it properly!"
-        {
-          "${cfg.proxy.domain}" = {
-            serverAliases = cfg.proxy.aliases;
-            extraConfig = ''
-              reverse_proxy 127.0.0.1:${toString cfg.port}
-            '';
-          };
+      "proxy.domain can't be null, please specicy it properly!"
+      {
+        "${cfg.proxy.domain}" = {
+          serverAliases = cfg.proxy.aliases;
+          extraConfig = ''
+            reverse_proxy 127.0.0.1:${toString cfg.port}
+          '';
         };
+      };
   };
 
   nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
     services.nginx.virtualHosts =
       lib.debug.traceIf (isNull cfg.proxy.domain)
-        "proxy.domain can't be null, please specify it properly!"
-        {
-          "${cfg.proxy.domain}" = {
-            addSSL = true;
-            enableACME = true;
-            serverAliases = cfg.proxy.aliases;
-            locations."/" = {
-              proxyPass = "http://127.0.0.1:${toString cfg.port}";
-              proxyWebsockets = true;
-            };
+      "proxy.domain can't be null, please specify it properly!"
+      {
+        "${cfg.proxy.domain}" = {
+          addSSL = true;
+          enableACME = true;
+          serverAliases = cfg.proxy.aliases;
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:${toString cfg.port}";
+            proxyWebsockets = true;
           };
         };
+      };
   };
 
   service = mkIf cfg.enable {
@@ -58,11 +57,11 @@ let
       useDefaultShell = true;
     };
 
-    users.groups.${cfg.group} = { };
+    users.groups.${cfg.group} = {};
 
     systemd.services."relago-server-config" = {
-      wantedBy = [ "relago-server.target" ];
-      partOf = [ "relago-server.target" ];
+      wantedBy = ["relago-server.target"];
+      partOf = ["relago-server.target"];
 
       serviceConfig = {
         Type = "oneshot";
@@ -73,17 +72,15 @@ let
         WorkingDirectory = "${cfg.dataDir}";
         RemainAfterExit = true;
 
-        ExecStartPre =
-          let
-            preStartFullPrivileges = ''
-              set -o errexit -o pipefail -o nounset
-              shopt -s dotglob nullglob inherit_errexit
+        ExecStartPre = let
+          preStartFullPrivileges = ''
+            set -o errexit -o pipefail -o nounset
+            shopt -s dotglob nullglob inherit_errexit
 
-              chown -R --no-dereference '${cfg.user}':'${cfg.group}' '${cfg.dataDir}'
-              chmod -R u+rwX,g+rX,o-rwx '${cfg.dataDir}'
-            '';
-          in
-          "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
+            chown -R --no-dereference '${cfg.user}':'${cfg.group}' '${cfg.dataDir}'
+            chmod -R u+rwX,g+rX,o-rwx '${cfg.dataDir}'
+          '';
+        in "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
 
         ExecStart = pkgs.writeShellScript "${packageName}-config" ''
           set -o errexit -o pipefail -o nounset
@@ -109,8 +106,8 @@ let
         "network-online.target"
         "relago-server-config.service"
       ];
-      wants = [ "network-online.target" ];
-      wantedBy = [ "multi-user.target" ];
+      wants = ["network-online.target"];
+      wantedBy = ["multi-user.target"];
       # path = [ cfg.package ];
 
       serviceConfig = {
@@ -129,7 +126,7 @@ let
           "AF_INET"
           "AF_INET6"
         ];
-        DeviceAllow = [ "/dev/stdin r" ];
+        DeviceAllow = ["/dev/stdin r"];
         DevicePolicy = "strict";
         # IPAddressAllow = "localhost";
         LockPersonality = true;
@@ -143,7 +140,7 @@ let
         ProtectKernelLogs = true;
         ProtectKernelTunables = true;
         ProtectSystem = "strict";
-        ReadOnlyPaths = [ "/" ];
+        ReadOnlyPaths = ["/"];
         RemoveIPC = true;
         RestrictAddressFamilies = [
           "AF_NETLINK"
@@ -166,7 +163,7 @@ let
     };
   };
 
-  toml = pkgs.formats.toml { };
+  toml = pkgs.formats.toml {};
 
   toml-config = toml.generate "config.toml" {
     dataDir = cfg.tmpDir;
@@ -180,8 +177,7 @@ let
       ) "services.relago-server.proxy.domain must be set in order to properly generate certificate!")
     ];
   };
-in
-{
+in {
   options = with lib; {
     services.relago-server = {
       enable = mkEnableOption ''
@@ -202,14 +198,13 @@ in
 
         aliases = mkOption {
           type = with types; listOf str;
-          default = [ ];
-          example = [ "www.cocomelon.uz" ];
+          default = [];
+          example = ["www.cocomelon.uz"];
           description = "List of domain aliases to add to domain";
         };
 
         proxy = mkOption {
-          type =
-            with types;
+          type = with types;
             nullOr (enum [
               "nginx"
               "caddy"
