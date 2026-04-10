@@ -60,6 +60,11 @@ let
 
     users.groups.${cfg.group} = { };
 
+    systemd.tmpfiles.rules = [
+      "d ${cfg.dataDir} 0770 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.tmpDir}  0770 ${cfg.user} ${cfg.group} -"
+    ];
+
     systemd.services."relago-server-config" = {
       wantedBy = [ "relago-server.target" ];
       partOf = [ "relago-server.target" ];
@@ -77,10 +82,9 @@ let
           let
             preStartFullPrivileges = ''
               set -o errexit -o pipefail -o nounset
-              shopt -s dotglob nullglob inherit_errexit
-
-              chown -R --no-dereference '${cfg.user}':'${cfg.group}' '${cfg.dataDir}'
-              chmod -R u+rwX,g+rX,o-rwx '${cfg.dataDir}'
+              mkdir -p ${cfg.data-dir} ${cfg.tmp-dir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.data-dir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmp-dir}
             '';
           in
           "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
@@ -88,11 +92,9 @@ let
         ExecStart = pkgs.writeShellScript "${packageName}-config" ''
           set -o errexit -o pipefail -o nounset
           shopt -s inherit_errexit
-
           umask u=rwx,g=rx,o=
-
-          # Write configuration file for server
-          cp -f ${toml-config} ${cfg.dataDir}/config.toml
+          ${pkgs.coreutils}/bin/install -m 0640 -o ${cfg.user} -g ${cfg.group} \
+            ${toml-config} ${cfg.data-dir}/config.toml
         '';
       };
     };
