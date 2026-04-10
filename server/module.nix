@@ -82,9 +82,9 @@ let
           let
             preStartFullPrivileges = ''
               set -o errexit -o pipefail -o nounset
-              mkdir -p ${cfg.dataDir} ${cfg.tmp-dir}
+              mkdir -p ${cfg.dataDir} ${cfg.tmpDir}
               ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.dataDir}
-              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmp-dir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmpDir}
             '';
           in
           "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
