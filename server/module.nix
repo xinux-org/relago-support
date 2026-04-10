@@ -80,10 +80,6 @@ let
         RestartSec = "2s";
         RemainAfterExit = true;
 
-        ReadWritePaths = [
-          cfg.data-dir
-        ];
-
         ExecStartPre =
           let
             preStartFullPrivileges = ''
