@@ -66,7 +66,7 @@ let
     ];
 
     systemd.services."relago-server-config" = {
-      wantedBy = [ "relago-server.target" ];
+      wantedBy = [ "multi-user.target" ];
       partOf = [ "relago-server.target" ];
 
       serviceConfig = {
@@ -124,7 +124,7 @@ let
         ExecReload = "${pkgs.coreutils}/bin/kill -s HUP $MAINPID";
 
         StateDirectory = cfg.user;
-        StateDirectoryMode = "0750";
+        StateDirectoryMode = "0770";
 
         CapabilityBoundingSet = [
           "AF_NETLINK"
@@ -163,7 +163,7 @@ let
           "~@resources"
           "@pkey"
         ];
-        UMask = "0027";
+        UMask = "0022";
       };
     };
   };
