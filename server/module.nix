@@ -114,7 +114,7 @@ let
         "relago-server-config.service"
       ];
       requires = [
-        "relago-server-config".service
+        "relago-server-config.service"
       ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
