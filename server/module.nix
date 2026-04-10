@@ -68,7 +68,7 @@ let
     systemd.targets."relago-server" = { };
 
     systemd.services."relago-server-config" = {
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = [ "relago-server.target" ];
       after = [ "systemd-tmpfiles-setup.service" ];
       requires = [ "systemd-tmpfiles-setup.service" ];
 
@@ -113,9 +113,16 @@ let
         "network-online.target"
         "relago-server-config.service"
       ];
+      requires = [
+        "relago-server-config".service
+      ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       # path = [ cfg.package ];
+      restartTriggers = [
+        cfg.package
+        toml-config
+      ];
 
       serviceConfig = {
         User = cfg.user;
