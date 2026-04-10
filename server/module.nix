@@ -82,8 +82,8 @@ let
           let
             preStartFullPrivileges = ''
               set -o errexit -o pipefail -o nounset
-              mkdir -p ${cfg.data-dir} ${cfg.tmp-dir}
-              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.data-dir}
+              mkdir -p ${cfg.dataDir} ${cfg.tmp-dir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.dataDir}
               ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmp-dir}
             '';
           in
@@ -94,7 +94,7 @@ let
           shopt -s inherit_errexit
           umask u=rwx,g=rx,o=
           ${pkgs.coreutils}/bin/install -m 0640 -o ${cfg.user} -g ${cfg.group} \
-            ${toml-config} ${cfg.data-dir}/config.toml
+            ${toml-config} ${cfg.dataDir}/config.toml
         '';
       };
     };
