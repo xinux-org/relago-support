@@ -76,7 +76,7 @@ let
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
-        Restart = "on-failure";
+        Restart = "always";
         RestartSec = "2s";
         RemainAfterExit = true;
 
