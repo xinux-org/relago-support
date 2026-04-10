@@ -65,18 +65,24 @@ let
       "d ${cfg.tmpDir}  0770 ${cfg.user} ${cfg.group} -"
     ];
 
+    systemd.targets."relago-server" = { };
+
     systemd.services."relago-server-config" = {
       wantedBy = [ "multi-user.target" ];
-      partOf = [ "relago-server.target" ];
+      after = [ "systemd-tmpfiles-setup.service" ];
+      requires = [ "systemd-tmpfiles-setup.service" ];
 
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
-        TimeoutSec = "infinity";
         Restart = "on-failure";
-        WorkingDirectory = "${cfg.dataDir}";
+        RestartSec = "2s";
         RemainAfterExit = true;
+
+        ReadWritePaths = [
+          cfg.data-dir
+        ];
 
         ExecStartPre =
           let
