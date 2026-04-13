@@ -68,19 +68,16 @@ let
     systemd.targets."relago-server" = { };
 
     systemd.services."relago-server-config" = {
-      wantedBy = [ "default.target" ];
-      after = [
-        "systemd-tmpfiles-setup.target"
-        "network.target"
-      ];
-      requires = [ "systemd-tmpfiles-setup.target" ];
+      wantedBy = [ "relago-server.target" ];
+      partOf = [ "relago-server.target" ];
 
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
-        # Restart = "on-failure";
-        RestartSec = "2s";
+        TimeoutSec = "inifinity";
+        Restart = "on-failure";
+        WorkingDirectory = "${cfg.dataDir}";
         RemainAfterExit = true;
 
         ExecStartPre =
@@ -113,10 +110,7 @@ let
       # };
 
       after = [
-        "network-online.target"
-        "relago-server-config.service"
-      ];
-      requires = [
+        "network.target"
         "relago-server-config.service"
       ];
       wants = [ "network-online.target" ];
@@ -126,6 +120,7 @@ let
         cfg.package
         toml-config
       ];
+      path = [ cfg.package ];
 
       serviceConfig = {
         User = cfg.user;
