@@ -33,20 +33,23 @@ let
   };
 
   nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
-    services.nginx.virtualHosts =
-      lib.debug.traceIf (isNull cfg.proxy.domain)
-        "proxy.domain can't be null, please specify it properly!"
-        {
-          "${cfg.proxy.domain}" = {
-            addSSL = true;
-            enableACME = true;
-            serverAliases = cfg.proxy.aliases;
-            locations."/" = {
-              proxyPass = "http://127.0.0.1:${toString cfg.port}";
-              proxyWebsockets = true;
+    services.nginx = {
+      virtualHosts =
+        lib.debug.traceIf (isNull cfg.proxy.domain)
+          "proxy.domain can't be null, please specify it properly!"
+          {
+            "${cfg.proxy.domain}" = {
+              addSSL = true;
+              enableACME = true;
+              serverAliases = cfg.proxy.aliases;
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:${toString cfg.port}";
+                proxyWebsockets = true;
+              };
             };
           };
-        };
+      clientMaxBodySize = "1024m";
+    };
   };
 
   service = mkIf cfg.enable {
