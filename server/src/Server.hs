@@ -11,6 +11,7 @@ import Data.Kind (Type)
 import Network.Wai.Handler.Warp qualified as WP
 import Options.Generic
 import Toml.Schema.Matcher (Result (..))
+import Network.Wai.Handler.Warp
 
 type Options :: Type -> Type
 newtype Options w = Options
@@ -26,11 +27,14 @@ run = do
   (op :: Options Unwrapped) <- unwrapRecord "Registrar application"
   putStrLn "Application ready to start"
 
+
   cn <- loadConfig op.cfg
   case cn of
     Success _ c -> do
       let ?config = c
-      WP.run c.port $ runApi
+      let st = setPort c.port $ setHost "*" defaultSettings -- FIXME: this is trival solution
+
+      WP.runSettings st $ runApi
     Failure _ -> print "error"
 
 -- FIXME: port number from options
