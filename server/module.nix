@@ -243,7 +243,7 @@ in
 
       port = mkOption {
         type = types.int;
-        default = 42424;
+        default = 4242;
         description = "Port to use for passing over proxy";
       };
 
