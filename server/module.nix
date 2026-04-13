@@ -75,7 +75,7 @@ let
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
-        TimeoutSec = "inifinity";
+        TimeoutSec = "infinity";
         Restart = "on-failure";
         WorkingDirectory = "${cfg.dataDir}";
         RemainAfterExit = true;
