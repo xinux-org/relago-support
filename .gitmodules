@@ -1,0 +1,8 @@
+[submodule "server/lib/bindings-dsl"]
+	path = server/lib/bindings-dsl
+	url = git@github.com:lambdajon/bindings-dsl.git
+	branch = relago
+[submodule "server/lib/h-gpgme"]
+	path = server/lib/h-gpgme
+	url = git@github.com:lambdajon/h-gpgme.git
+	branch = relago
