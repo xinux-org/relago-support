@@ -1,0 +1,9 @@
+packages:
+  .
+  lib/h-gpgme
+  lib/bindings-dsl/bindings-gpgme
+
+allow-newer: all
+
+constraints:
+  zlib +bundled-c-zlib
