@@ -2,21 +2,36 @@ name: Nix Cabal Generate
 
 on:
   pull_request:
-    branches: -main
+    branches:
+      - main
   push:
+    branches:
+      - main
 
 jobs:
   nix-generate:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
-    # outputs:
-    #   relago-server: ${{ steps.from-cabal-to-nix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v30
-      - id: from-cabal-to-nix
-        name: Generate Nix Cabal
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v11
+
+      - name: Generate Nix Cabal
         run: |
-          nix run nixpkgs#cabal2nix ./server/. > ./server/relago-server.nix
+          nix run nixpkgs#cabal2nix -- ./server/. > ./server/relago-server.nix
+
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update relago-server.nix"
+          file_pattern: "server/relago-server.nix"
