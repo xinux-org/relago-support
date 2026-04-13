@@ -18,6 +18,7 @@ import Servant hiding (Param)
 import Servant.Server.Generic (AsServer)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
+import Data.ByteString qualified as BS
 
 type KeysRoutes :: Type -> Type
 newtype KeysRoutes route = MkKeysRoutes
@@ -38,8 +39,10 @@ exchangeKey :: (?config :: Config) => ExchangeKey -> Handler ExchangeKey
 exchangeKey _k = do
   let c = ?config
       keyDir = c.dataDir </> "keys"
+      bindedKeyDir = c.dataDir </> "userKey"
 
   liftIO $ createDirectoryIfMissing True keyDir
+  liftIO $ createDirectoryIfMissing True bindedKeyDir
 
   ret <- liftIO $ withCtx keyDir "C" OpenPGP $ \ctx -> do
     -- FIXME: Remove raw params, use 256-bit fixed key length
@@ -68,7 +71,22 @@ exchangeKey _k = do
           Just key -> do
             let subkeys = keySubKeys key
             case drop 1 subkeys of
-              (encryptionKey : _) -> pure $ Right (decodeUtf8 (subkeyFpr encryptionKey))
+              (encryptionKey : _) -> do
+                let passphrase = "42"
+                    passphraseCallback _hint _info _prevBad = return (Just passphrase)
+                setPassphraseCallback ctx (Just passphraseCallback)
+                -- Export public key using h-gpgme
+                pKey <- exportKey ctx fpr
+                -- Export secret key using h-gpgme
+                sKey <- exportSecretKey ctx fpr
+                case (pKey, sKey) of
+                  (Right pubKey, Right secKey) -> do
+                    -- Save to bindedKeyDir
+                    BS.writeFile (bindedKeyDir </> "public.asc") pubKey
+                    BS.writeFile (bindedKeyDir </> "secret.asc") secKey
+                    pure $ Right (decodeUtf8 (subkeyFpr encryptionKey))
+                  (Left err, _) -> pure $ Left ("Failed to export public key: " <> show err)
+                  (_, Left err) -> pure $ Left ("Failed to export secret key: " <> show err)
               [] -> pure $ Left "No encryption subkey found"
 
   case ret of
