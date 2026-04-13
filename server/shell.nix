@@ -25,6 +25,7 @@ pkgs.mkShell {
     # hpkgs.bzip2-clib
 
     pkgs.haskellPackages.cabal-fmt
+    pkgs.cabal2nix
 
     pkgs.zlib
     pkgs.zlib.dev
