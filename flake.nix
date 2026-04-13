@@ -37,6 +37,14 @@
             overrides = self: super: {
               bz2 = hlib.dontCheck (hlib.doJailbreak super.bz2);
               bzlib-conduit = hlib.dontCheck (hlib.doJailbreak super.bzlib-conduit);
+
+              resolv = hlib.overrideCabal super.resolv (drv: {
+                configureFlags = (drv.configureFlags or [ ]) ++ [
+                  "--ghc-option=+RTS"
+                  "--ghc-option=-K128M"
+                  "--ghc-option=-RTS"
+                ];
+              });
             };
           };
           hlib = pkgs.haskell.lib;
@@ -46,7 +54,7 @@
           clientShell = pkgs.callPackage ./client/shell.nix { inherit pkgs; };
 
           serverPkg = pkgs.callPackage ./server/package.nix { inherit pkgs hpkgs hlib; };
-          # clientPkg = pkgs.callPackage ./client/package.nix {inherit pkgs;};
+          # clientPkg = pkgs.callPackage ./client/pnix {inherit pkgs;};
         in
         {
           devShells.default = defaultShell;
