@@ -32,20 +32,23 @@ flake: {
   };
 
   nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
-    services.nginx.virtualHosts =
-      lib.debug.traceIf (isNull cfg.proxy.domain)
-      "proxy.domain can't be null, please specify it properly!"
-      {
-        "${cfg.proxy.domain}" = {
-          addSSL = true;
-          enableACME = true;
-          serverAliases = cfg.proxy.aliases;
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:${toString cfg.port}";
-            proxyWebsockets = true;
+    services.nginx = {
+      virtualHosts =
+        lib.debug.traceIf (isNull cfg.proxy.domain)
+          "proxy.domain can't be null, please specify it properly!"
+          {
+            "${cfg.proxy.domain}" = {
+              addSSL = true;
+              enableACME = true;
+              serverAliases = cfg.proxy.aliases;
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:${toString cfg.port}";
+                proxyWebsockets = true;
+              };
+            };
           };
-        };
-      };
+      clientMaxBodySize = "1024m";
+    };
   };
 
   service = mkIf cfg.enable {
@@ -58,6 +61,13 @@ flake: {
     };
 
     users.groups.${cfg.group} = {};
+
+    systemd.tmpfiles.rules = [
+      "d ${cfg.dataDir} 0770 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.tmpDir}  0770 ${cfg.user} ${cfg.group} -"
+    ];
+
+    systemd.targets."relago-server" = { };
 
     systemd.services."relago-server-config" = {
       wantedBy = ["relago-server.target"];
@@ -72,24 +82,23 @@ flake: {
         WorkingDirectory = "${cfg.dataDir}";
         RemainAfterExit = true;
 
-        ExecStartPre = let
-          preStartFullPrivileges = ''
-            set -o errexit -o pipefail -o nounset
-            shopt -s dotglob nullglob inherit_errexit
-
-            chown -R --no-dereference '${cfg.user}':'${cfg.group}' '${cfg.dataDir}'
-            chmod -R u+rwX,g+rX,o-rwx '${cfg.dataDir}'
-          '';
-        in "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
+        ExecStartPre =
+          let
+            preStartFullPrivileges = ''
+              set -o errexit -o pipefail -o nounset
+              mkdir -p ${cfg.dataDir} ${cfg.tmpDir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.dataDir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmpDir}
+            '';
+          in
+          "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
 
         ExecStart = pkgs.writeShellScript "${packageName}-config" ''
           set -o errexit -o pipefail -o nounset
           shopt -s inherit_errexit
-
           umask u=rwx,g=rx,o=
-
-          # Write configuration file for server
-          cp -f ${toml-config} ${cfg.dataDir}/config.toml
+          ${pkgs.coreutils}/bin/install -m 0640 -o ${cfg.user} -g ${cfg.group} \
+            ${toml-config} ${cfg.dataDir}/config.toml
         '';
       };
     };
@@ -103,12 +112,17 @@ flake: {
       # };
 
       after = [
-        "network-online.target"
+        "network.target"
         "relago-server-config.service"
       ];
       wants = ["network-online.target"];
       wantedBy = ["multi-user.target"];
       # path = [ cfg.package ];
+      restartTriggers = [
+        cfg.package
+        toml-config
+      ];
+      path = [ cfg.package ];
 
       serviceConfig = {
         User = cfg.user;
@@ -119,7 +133,11 @@ flake: {
         ExecReload = "${pkgs.coreutils}/bin/kill -s HUP $MAINPID";
 
         StateDirectory = cfg.user;
-        StateDirectoryMode = "0750";
+        StateDirectoryMode = "0770";
+
+        ReadWritePaths = [
+          cfg.dataDir
+        ];
 
         CapabilityBoundingSet = [
           "AF_NETLINK"
@@ -222,7 +240,7 @@ in {
 
       port = mkOption {
         type = types.int;
-        default = 42424;
+        default = 4242;
         description = "Port to use for passing over proxy";
       };
 
