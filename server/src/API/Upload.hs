@@ -58,7 +58,7 @@ upload r = do
     void $ ZIP.withArchive filePath (ZIP.unpackInto unzipFolder) -- Unpack zip archive
     entries <- ZIP.withArchive filePath (M.keys <$> ZIP.getEntries)
 
-    let jr = find (isExtensionOf "zlib") $  ZIP.unEntrySelector <$> entries
+    let jr = find (isExtensionOf "zlib") $ ZIP.unEntrySelector <$> entries
     case jr of -- FIXME: simlify code
       Just j -> do
         let fname = dropExtension j
@@ -67,7 +67,6 @@ upload r = do
       Nothing -> print "Journal not found" -- FIXME: Handle error
     print r
   return 0
-
 
 uploadHandlers :: (AppConfig) => UploadRoutes AsServer
 uploadHandlers =

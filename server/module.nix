@@ -1,12 +1,11 @@
-flake:
-{
+flake: {
   config,
   lib,
   pkgs,
   ...
-}:
-let
-  inherit (lib)
+}: let
+  inherit
+    (lib)
     mkEnableOption
     mkOption
     mkIf
@@ -21,15 +20,15 @@ let
   caddy = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "caddy") {
     services.caddy.virtualHosts =
       lib.debug.traceIf (isNull cfg.proxy.domain)
-        "proxy.domain can't be null, please specicy it properly!"
-        {
-          "${cfg.proxy.domain}" = {
-            serverAliases = cfg.proxy.aliases;
-            extraConfig = ''
-              reverse_proxy 127.0.0.1:${toString cfg.port}
-            '';
-          };
+      "proxy.domain can't be null, please specicy it properly!"
+      {
+        "${cfg.proxy.domain}" = {
+          serverAliases = cfg.proxy.aliases;
+          extraConfig = ''
+            reverse_proxy 127.0.0.1:${toString cfg.port}
+          '';
         };
+      };
   };
 
   nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
@@ -61,7 +60,7 @@ let
       useDefaultShell = true;
     };
 
-    users.groups.${cfg.group} = { };
+    users.groups.${cfg.group} = {};
 
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0770 ${cfg.user} ${cfg.group} -"
@@ -71,8 +70,8 @@ let
     systemd.targets."relago-server" = { };
 
     systemd.services."relago-server-config" = {
-      wantedBy = [ "relago-server.target" ];
-      partOf = [ "relago-server.target" ];
+      wantedBy = ["relago-server.target"];
+      partOf = ["relago-server.target"];
 
       serviceConfig = {
         Type = "oneshot";
@@ -116,8 +115,8 @@ let
         "network.target"
         "relago-server-config.service"
       ];
-      wants = [ "network-online.target" ];
-      wantedBy = [ "multi-user.target" ];
+      wants = ["network-online.target"];
+      wantedBy = ["multi-user.target"];
       # path = [ cfg.package ];
       restartTriggers = [
         cfg.package
@@ -145,7 +144,7 @@ let
           "AF_INET"
           "AF_INET6"
         ];
-        DeviceAllow = [ "/dev/stdin r" ];
+        DeviceAllow = ["/dev/stdin r"];
         DevicePolicy = "strict";
         # IPAddressAllow = "localhost";
         LockPersonality = true;
@@ -159,7 +158,7 @@ let
         ProtectKernelLogs = true;
         ProtectKernelTunables = true;
         ProtectSystem = "strict";
-        ReadOnlyPaths = [ "/" ];
+        ReadOnlyPaths = ["/"];
         RemoveIPC = true;
         RestrictAddressFamilies = [
           "AF_NETLINK"
@@ -182,7 +181,7 @@ let
     };
   };
 
-  toml = pkgs.formats.toml { };
+  toml = pkgs.formats.toml {};
 
   toml-config = toml.generate "config.toml" {
     dataDir = cfg.tmpDir;
@@ -196,8 +195,7 @@ let
       ) "services.relago-server.proxy.domain must be set in order to properly generate certificate!")
     ];
   };
-in
-{
+in {
   options = with lib; {
     services.relago-server = {
       enable = mkEnableOption ''
@@ -218,14 +216,13 @@ in
 
         aliases = mkOption {
           type = with types; listOf str;
-          default = [ ];
-          example = [ "www.cocomelon.uz" ];
+          default = [];
+          example = ["www.cocomelon.uz"];
           description = "List of domain aliases to add to domain";
         };
 
         proxy = mkOption {
-          type =
-            with types;
+          type = with types;
             nullOr (enum [
               "nginx"
               "caddy"

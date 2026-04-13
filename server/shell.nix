@@ -33,6 +33,7 @@ pkgs.mkShell {
     pkgs.xz
     pkgs.bzip2
     pkgs.libzip
+    pkgs.gpgme
     # pkgs.lbzip2
     # pkgs.bzip3
     # pre-commit-check.enabledPackages
