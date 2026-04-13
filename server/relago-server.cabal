@@ -22,6 +22,9 @@ library
     API.Util
     Config
     Server
+    State
+    Database
+    Database.Types
 
   build-depends:
     , aeson
@@ -56,6 +59,10 @@ library
     , warp
     , zip
     , zlib
+    , persistent
+    , persistent-migration
+    , persistent-postgresql
+    , resource-pool
 
   hs-source-dirs:     src
   default-language:   GHC2024
