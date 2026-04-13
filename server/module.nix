@@ -68,9 +68,12 @@ let
     systemd.targets."relago-server" = { };
 
     systemd.services."relago-server-config" = {
-      wantedBy = [ "relago-server.target" ];
-      after = [ "systemd-tmpfiles-setup.service" ];
-      requires = [ "systemd-tmpfiles-setup.service" ];
+      wantedBy = [ "default.target" ];
+      after = [
+        "systemd-tmpfiles-setup.target"
+        "network.target"
+      ];
+      requires = [ "systemd-tmpfiles-setup.target" ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -135,6 +138,10 @@ let
         StateDirectory = cfg.user;
         StateDirectoryMode = "0770";
 
+        ReadWritePaths = [
+          cfg.dataDir
+        ];
+
         CapabilityBoundingSet = [
           "AF_NETLINK"
           "AF_INET"
@@ -172,7 +179,7 @@ let
           "~@resources"
           "@pkey"
         ];
-        UMask = "0022";
+        UMask = "0027";
       };
     };
   };
