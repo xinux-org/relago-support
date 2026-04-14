@@ -4,7 +4,10 @@
   hlib,
   ...
 }:
-pkgs.haskell.lib.overrideCabal (hpkgs.callCabal2nix "relago-server" ./. {}) (_: {
+let
+  generated = (hpkgs.callPackage ./relago-server.nix { });
+in
+pkgs.haskell.lib.overrideCabal generated (_: {
   doCheck = true;
   doHaddock = false;
   enableLibraryProfiling = false;
