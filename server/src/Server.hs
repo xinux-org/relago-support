@@ -1,21 +1,17 @@
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedRecordDot #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Server where
 
-import API
-import Config
-import State (AppSt (..))
-import Data.Kind (Type)
-import Network.Wai.Handler.Warp qualified as WP
+import Relago.Prelude
+
+import API (runApi)
+import Config (loadConfig)
+import Control.Monad.Logger (runStdoutLoggingT)
+import Database.Persist.Postgresql (createPostgresqlPool)
+import Data.Text.Encoding (encodeUtf8)
+import Network.Wai.Handler.Warp (defaultSettings, runSettings, setHost, setPort)
 import Options.Generic
 import Toml.Schema.Matcher (Result (..))
-import Network.Wai.Handler.Warp
-import Database.Persist.Postgresql (createPostgresqlPool)
-import Control.Monad.Logger (runStdoutLoggingT)
-import Data.Text.Encoding (encodeUtf8)
 
 type Options :: Type -> Type
 newtype Options w = Options
@@ -40,5 +36,5 @@ run = do
       let ?st = MkAppSt { config = c, db = pool }
       let settings = setPort c.port $ setHost "*" defaultSettings
 
-      WP.runSettings settings $ runApi
+      runSettings settings runApi
     Failure _ -> print "error"

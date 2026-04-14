@@ -1,25 +1,18 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 {- HLINT ignore "Use newtype instead of data" -}
 module API.Keys where
 
-import Config (Config (..))
-import State (AppState, AppSt (..))
-import Control.Monad.IO.Class (MonadIO (liftIO))
+import Relago.Prelude
+
 import Crypto.Gpgme
 import Crypto.Gpgme.Key.Gen qualified as G
-import Data.Aeson (FromJSON, ToJSON)
-import Data.Default
-import Data.Kind (Type)
+import Data.ByteString qualified as BS
+import Data.Default (def)
 import Data.String (fromString)
-import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
-import GHC.Generics (Generic)
 import Servant hiding (Param)
 import Servant.Server.Generic (AsServer)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
-import Data.ByteString qualified as BS
 
 type KeysRoutes :: Type -> Type
 newtype KeysRoutes route = MkKeysRoutes

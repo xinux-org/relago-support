@@ -1,36 +1,25 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module API.Upload where
 
+import Relago.Prelude
+
 import Codec.Archive.Zip qualified as ZIP
 import Codec.Compression.Zlib qualified as Zlib
-import Config (Config (..))
-import State (AppState, AppSt (..))
-import Control.Monad
-import Control.Monad.IO.Class (MonadIO (..))
+import Control.Monad (void)
 import Data.ByteString.Lazy qualified as LBS
-import Data.Kind (Type)
 import Data.List (find)
 import Data.Map qualified as M
-import Data.Text (Text)
-import Data.Time.Clock.POSIX
-import GHC.Generics (Generic)
+import Data.Time.Clock.POSIX (getPOSIXTime)
 import Servant hiding (Param)
 import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (renameFile)
-import System.FilePath
-  ( addExtension
-  , dropExtension
-  , isExtensionOf
-  , (</>)
-  )
+import System.FilePath (addExtension, dropExtension, isExtensionOf, (</>))
 
 type UploadRoutes :: Type -> Type
 newtype UploadRoutes route = MkUploadRoutes
