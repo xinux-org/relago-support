@@ -11,11 +11,14 @@ import Toml qualified
 import Toml.Schema (FromValue, ToTable, ToValue)
 import Toml.Schema.Generic (GenericTomlTable (..))
 import Toml.Schema.Matcher (Result (..))
+import Data.Text (Text)
 
 type Config :: Type
 data Config = Config
   { dataDir :: !FilePath
   , port :: !Int
+  , database :: !Text
+  , databasePoolSize :: !Int
   }
   deriving (Eq, Generic, Show)
   deriving (FromValue, ToTable, ToValue) via GenericTomlTable Config
