@@ -10,7 +10,7 @@ module API where
 import API.Keys
 import API.Upload
 import API.Util
-import Config
+import State (AppState)
 import Data.Kind (Type)
 import Servant
 import Servant.API.Generic
@@ -32,7 +32,7 @@ data ApiServer route = MkApiServer
 apiProxy :: Proxy (ToServantApi API)
 apiProxy = Proxy
 
-apiHandlers :: (AppConfig) => API AsServer
+apiHandlers :: (AppState) => API AsServer
 apiHandlers =
   MkAPI
     { upload = uploadHandlers
@@ -44,13 +44,13 @@ heal :: Handler Integer
 heal =
   return 1
 
-mkServer :: (AppConfig) => ApiServer AsServer
+mkServer :: (AppState) => ApiServer AsServer
 mkServer =
   MkApiServer
     { api = apiHandlers
     }
 
-runApi :: (AppConfig) => Application
+runApi :: (AppState) => Application
 runApi =
   serveWithContext
     (Proxy @(ToServantApi ApiServer))

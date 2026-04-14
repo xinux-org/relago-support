@@ -3,7 +3,8 @@
 {- HLINT ignore "Use newtype instead of data" -}
 module API.Keys where
 
-import Config (AppConfig, Config (..))
+import Config (Config (..))
+import State (AppState, AppSt (..))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Crypto.Gpgme
 import Crypto.Gpgme.Key.Gen qualified as G
@@ -35,9 +36,9 @@ data ExchangeKey = MkExchangeKey
 deriving anyclass instance ToJSON ExchangeKey
 deriving anyclass instance FromJSON ExchangeKey
 
-exchangeKey :: (?config :: Config) => ExchangeKey -> Handler ExchangeKey
+exchangeKey :: (AppState) => ExchangeKey -> Handler ExchangeKey
 exchangeKey _k = do
-  let c = ?config
+  let c = ?st.config
       keyDir = c.dataDir </> "keys"
       bindedKeyDir = c.dataDir </> "userKey"
 
@@ -97,7 +98,7 @@ exchangeKey _k = do
           { publicKey = encryptionKeyFpr
           }
 
-keysHandlers :: (AppConfig) => KeysRoutes AsServer
+keysHandlers :: (AppState) => KeysRoutes AsServer
 keysHandlers =
   MkKeysRoutes
     { exchange = exchangeKey

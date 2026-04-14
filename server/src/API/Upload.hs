@@ -10,7 +10,8 @@ module API.Upload where
 
 import Codec.Archive.Zip qualified as ZIP
 import Codec.Compression.Zlib qualified as Zlib
-import Config (AppConfig, Config (dataDir))
+import Config (Config (..))
+import State (AppState, AppSt (..))
 import Control.Monad
 import Control.Monad.IO.Class (MonadIO (..))
 import Data.ByteString.Lazy qualified as LBS
@@ -43,9 +44,9 @@ instance FromMultipart Tmp Report where
   fromMultipart multipartData =
     let f = lookupFile "report" multipartData in (MkReport . fdPayload <$> f) <*> (fdFileName <$> f)
 
-upload :: (?config :: Config) => Report -> Handler Integer
+upload :: (AppState) => Report -> Handler Integer
 upload r = do
-  let c = ?config
+  let c = ?st.config
   liftIO $ do
     tm <- getPOSIXTime -- FIXME: Use something unique identificator generator for rename archive file
     let dataPath = c.dataDir
@@ -68,7 +69,7 @@ upload r = do
     print r
   return 0
 
-uploadHandlers :: (AppConfig) => UploadRoutes AsServer
+uploadHandlers :: (AppState) => UploadRoutes AsServer
 uploadHandlers =
   MkUploadRoutes
     { _log = upload
