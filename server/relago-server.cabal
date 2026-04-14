@@ -40,6 +40,7 @@ library
     , http-media
     , http-types
     , lens
+    , monad-logger
     , mtl
     , optparse-generic
     , safe-exceptions
