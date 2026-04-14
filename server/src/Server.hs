@@ -2,15 +2,14 @@
 
 module Server where
 
-import Relago.Prelude
-
 import API (runApi)
 import Config (loadConfig)
 import Control.Monad.Logger (runStdoutLoggingT)
-import Database.Persist.Postgresql (createPostgresqlPool)
 import Data.Text.Encoding (encodeUtf8)
+import Database.Persist.Postgresql (createPostgresqlPool)
 import Network.Wai.Handler.Warp (defaultSettings, runSettings, setHost, setPort)
 import Options.Generic
+import Relago.Prelude
 import Toml.Schema.Matcher (Result (..))
 
 type Options :: Type -> Type
@@ -27,13 +26,13 @@ run = do
   (op :: Options Unwrapped) <- unwrapRecord "Registrar application"
   putStrLn "Application ready to start"
 
-
   cn <- loadConfig op.cfg
   case cn of
     Success _ c -> do
-      pool <- runStdoutLoggingT $
-        createPostgresqlPool (encodeUtf8 c.database) c.databasePoolSize
-      let ?st = MkAppSt { config = c, db = pool }
+      pool <-
+        runStdoutLoggingT
+          $ createPostgresqlPool (encodeUtf8 c.database) c.databasePoolSize
+      let ?st = MkAppSt{config = c, db = pool}
       let settings = setPort c.port $ setHost "*" defaultSettings
 
       runSettings settings runApi

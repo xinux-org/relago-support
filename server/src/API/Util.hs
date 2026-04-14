@@ -4,13 +4,12 @@
 
 module API.Util where
 
-import Relago.Prelude
-
 import Control.Monad.Except (ExceptT (..), MonadError (..))
 import Control.Monad.Trans (MonadTrans (..))
 import Control.Monad.Trans.Except (runExceptT)
 import Network.HTTP.Media qualified as HTTPMedia
 import Network.HTTP.Types qualified as HTTP
+import Relago.Prelude
 import Servant
 
 ----------------------- Error formatting ------------------

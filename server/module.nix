@@ -35,18 +35,18 @@ flake: {
     services.nginx = {
       virtualHosts =
         lib.debug.traceIf (isNull cfg.proxy.domain)
-          "proxy.domain can't be null, please specify it properly!"
-          {
-            "${cfg.proxy.domain}" = {
-              addSSL = true;
-              enableACME = true;
-              serverAliases = cfg.proxy.aliases;
-              locations."/" = {
-                proxyPass = "http://127.0.0.1:${toString cfg.port}";
-                proxyWebsockets = true;
-              };
+        "proxy.domain can't be null, please specify it properly!"
+        {
+          "${cfg.proxy.domain}" = {
+            addSSL = true;
+            enableACME = true;
+            serverAliases = cfg.proxy.aliases;
+            locations."/" = {
+              proxyPass = "http://127.0.0.1:${toString cfg.port}";
+              proxyWebsockets = true;
             };
           };
+        };
       clientMaxBodySize = "1024m";
     };
   };
@@ -67,7 +67,7 @@ flake: {
       "d ${cfg.tmpDir}  0770 ${cfg.user} ${cfg.group} -"
     ];
 
-    systemd.targets."relago-server" = { };
+    systemd.targets."relago-server" = {};
 
     systemd.services."relago-server-config" = {
       wantedBy = ["relago-server.target"];
@@ -82,16 +82,14 @@ flake: {
         WorkingDirectory = "${cfg.dataDir}";
         RemainAfterExit = true;
 
-        ExecStartPre =
-          let
-            preStartFullPrivileges = ''
-              set -o errexit -o pipefail -o nounset
-              mkdir -p ${cfg.dataDir} ${cfg.tmpDir}
-              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.dataDir}
-              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmpDir}
-            '';
-          in
-          "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
+        ExecStartPre = let
+          preStartFullPrivileges = ''
+            set -o errexit -o pipefail -o nounset
+            mkdir -p ${cfg.dataDir} ${cfg.tmpDir}
+            ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.dataDir}
+            ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmpDir}
+          '';
+        in "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
 
         ExecStart = pkgs.writeShellScript "${packageName}-config" ''
           set -o errexit -o pipefail -o nounset
@@ -122,7 +120,7 @@ flake: {
         cfg.package
         toml-config
       ];
-      path = [ cfg.package ];
+      path = [cfg.package];
 
       serviceConfig = {
         User = cfg.user;

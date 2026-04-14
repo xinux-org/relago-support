@@ -6,8 +6,6 @@
 
 module API.Upload where
 
-import Relago.Prelude
-
 import Codec.Archive.Zip qualified as ZIP
 import Codec.Compression.Zlib qualified as Zlib
 import Control.Monad (void)
@@ -15,6 +13,7 @@ import Data.ByteString.Lazy qualified as LBS
 import Data.List (find)
 import Data.Map qualified as M
 import Data.Time.Clock.POSIX (getPOSIXTime)
+import Relago.Prelude
 import Servant hiding (Param)
 import Servant.Multipart
 import Servant.Server.Generic (AsServer)

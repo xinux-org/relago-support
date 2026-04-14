@@ -1,14 +1,13 @@
 {- HLINT ignore "Use newtype instead of data" -}
 module API.Keys where
 
-import Relago.Prelude
-
 import Crypto.Gpgme
 import Crypto.Gpgme.Key.Gen qualified as G
 import Data.ByteString qualified as BS
 import Data.Default (def)
 import Data.String (fromString)
 import Data.Text.Encoding (decodeUtf8)
+import Relago.Prelude
 import Servant hiding (Param)
 import Servant.Server.Generic (AsServer)
 import System.Directory (createDirectoryIfMissing)

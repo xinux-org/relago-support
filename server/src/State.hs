@@ -1,8 +1,8 @@
 module State where
 
 import Config
-import Database.Types
 import Data.Kind (Constraint)
+import Database.Types
 
 data AppSt = MkAppSt
   { config :: Config

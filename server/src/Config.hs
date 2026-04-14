@@ -5,13 +5,13 @@ module Config where
 
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
+import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 import GHC.Generics (Generic)
 import Toml qualified
 import Toml.Schema (FromValue, ToTable, ToValue)
 import Toml.Schema.Generic (GenericTomlTable (..))
 import Toml.Schema.Matcher (Result (..))
-import Data.Text (Text)
 
 type Config :: Type
 data Config = Config

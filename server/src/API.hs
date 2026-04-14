@@ -6,11 +6,10 @@
 
 module API where
 
-import Relago.Prelude
-
 import API.Keys (KeysRoutes, keysHandlers)
 import API.Upload (UploadRoutes, uploadHandlers)
 import API.Util (errorFormatters)
+import Relago.Prelude
 import Servant
 import Servant.Server.Generic
 
