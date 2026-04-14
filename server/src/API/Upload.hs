@@ -12,7 +12,9 @@ import Control.Monad (void)
 import Data.ByteString.Lazy qualified as LBS
 import Data.List (find)
 import Data.Map qualified as M
+import Data.Text qualified as T
 import Data.Time.Clock.POSIX (getPOSIXTime)
+import Database.Reports (createReport)
 import Relago.Prelude
 import Servant hiding (Param)
 import Servant.Multipart
@@ -51,8 +53,10 @@ upload r = do
     case jr of -- FIXME: simlify code
       Just j -> do
         let fname = dropExtension j
+            fpath = unzipFolder </> fname
         cmp <- LBS.readFile $ unzipFolder </> j
-        LBS.writeFile (unzipFolder </> fname) $ Zlib.decompress cmp
+        LBS.writeFile fpath $ Zlib.decompress cmp
+        void $ createReport (T.pack fname) (T.pack fpath)
       Nothing -> print "Journal not found" -- FIXME: Handle error
     print r
   return 0
