@@ -13,12 +13,22 @@ import Toml.Schema (FromValue, ToTable, ToValue)
 import Toml.Schema.Generic (GenericTomlTable (..))
 import Toml.Schema.Matcher (Result (..))
 
+data OpenSearchConfig = OpenSearchConfig
+  { osHost :: !Text
+  , osPort :: !Int
+  , osUser :: !Text
+  , osPassword :: !Text
+  }
+  deriving (Eq, Generic, Show)
+  deriving (FromValue, ToTable, ToValue) via GenericTomlTable OpenSearchConfig
+
 type Config :: Type
 data Config = Config
   { dataDir :: !FilePath
   , port :: !Int
   , database :: !Text
   , databasePoolSize :: !Int
+  , openSearch :: !OpenSearchConfig
   }
   deriving (Eq, Generic, Show)
   deriving (FromValue, ToTable, ToValue) via GenericTomlTable Config

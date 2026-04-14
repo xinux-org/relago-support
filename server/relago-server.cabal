@@ -26,12 +26,14 @@ library
     Relago.Prelude
     Server
     State
+    Search
 
   build-depends:
     , aeson
     , async
     , base
     , base64-bytestring
+    , bloodhound
     , bytestring
     , containers
     , data-default
@@ -39,7 +41,11 @@ library
     , filepath
     , h-gpgme
     , http-media
+    , http-client
+    , http-client-tls
     , http-types
+    , crypton-connection
+    , tls
     , lens
     , monad-logger
     , mtl
@@ -58,6 +64,7 @@ library
     , time
     , toml-parser
     , transformers
+    , vector
     , unliftio
     , utf8-string
     , wai
