@@ -25,6 +25,7 @@ library
     State
     Database
     Database.Types
+    Relago.Prelude
 
   build-depends:
     , aeson
