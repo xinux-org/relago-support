@@ -24,9 +24,9 @@ library
     Database
     Database.Types
     Relago.Prelude
+    Search
     Server
     State
-    Search
 
   build-depends:
     , aeson
@@ -36,16 +36,15 @@ library
     , bloodhound
     , bytestring
     , containers
+    , crypton-connection
     , data-default
     , directory
     , filepath
     , h-gpgme
-    , http-media
     , http-client
     , http-client-tls
+    , http-media
     , http-types
-    , crypton-connection
-    , tls
     , lens
     , monad-logger
     , mtl
@@ -62,11 +61,12 @@ library
     , stm
     , text
     , time
+    , tls
     , toml-parser
     , transformers
-    , vector
     , unliftio
     , utf8-string
+    , vector
     , wai
     , wai-extra
     , warp
