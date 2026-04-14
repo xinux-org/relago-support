@@ -17,6 +17,7 @@ library
   import:             warnings
   exposed-modules:
     API
+    API.Keys
     API.Upload
     API.Util
     Config
@@ -26,10 +27,13 @@ library
     , aeson
     , async
     , base
+    , base64-bytestring
     , bytestring
     , containers
+    , data-default
     , directory
     , filepath
+    , h-gpgme
     , http-media
     , http-types
     , lens

@@ -7,6 +7,7 @@
 
 module API where
 
+import API.Keys
 import API.Upload
 import API.Util
 import Config
@@ -19,6 +20,7 @@ type API :: Type -> Type
 data API route = MkAPI
   { upload :: route :- "upload" :> NamedRoutes UploadRoutes
   , health :: route :- "health" :> Get '[JSON] Integer
+  , keys :: route :- "keys" :> NamedRoutes KeysRoutes
   }
   deriving stock (Generic)
 
@@ -35,6 +37,7 @@ apiHandlers =
   MkAPI
     { upload = uploadHandlers
     , health = heal
+    , keys = keysHandlers
     }
 
 heal :: Handler Integer
