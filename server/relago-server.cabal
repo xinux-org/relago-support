@@ -22,9 +22,11 @@ library
     API.Util
     Config
     Database
+    Database.Reports
     Database.Types
     Relago.Prelude
     Search
+    Search.Reports
     Server
     State
 
@@ -39,6 +41,7 @@ library
     , crypton-connection
     , data-default
     , directory
+    , esqueleto
     , filepath
     , h-gpgme
     , http-client

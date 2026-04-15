@@ -16,11 +16,13 @@ import Data.Text qualified as T
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Database.Reports (createReport)
 import Relago.Prelude
+import Search.Reports
 import Servant hiding (Param)
 import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (renameFile)
-import System.FilePath (addExtension, dropExtension, isExtensionOf, (</>))
+import System.FilePath (addExtension, dropExtension, dropFileName, isExtensionOf, (</>))
+import System.FilePath.Posix (takeDirectory)
 
 type UploadRoutes :: Type -> Type
 newtype UploadRoutes route = MkUploadRoutes
@@ -53,10 +55,12 @@ upload r = do
     case jr of -- FIXME: simlify code
       Just j -> do
         let fname = dropExtension j
+            iName = takeDirectory fname
             fpath = unzipFolder </> fname
         cmp <- LBS.readFile $ unzipFolder </> j
         LBS.writeFile fpath $ Zlib.decompress cmp
         void $ createReport (T.pack fname) (T.pack fpath)
+        liftIO $ indexJournalLogsFromFile c.openSearch (T.pack iName) fpath
       Nothing -> print "Journal not found" -- FIXME: Handle error
     print r
   return 0
