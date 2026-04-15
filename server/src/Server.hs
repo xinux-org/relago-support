@@ -6,6 +6,7 @@ import API (runApi)
 import Config (loadConfig)
 import Control.Monad.Logger (runStdoutLoggingT)
 import Data.Text.Encoding (encodeUtf8)
+import Database (migrate')
 import Database.Persist.Postgresql (createPostgresqlPool)
 import Network.Wai.Handler.Warp (defaultSettings, runSettings, setHost, setPort)
 import Options.Generic
@@ -34,6 +35,6 @@ run = do
           $ createPostgresqlPool (encodeUtf8 c.database) c.databasePoolSize
       let ?st = MkAppSt{config = c, db = pool}
       let settings = setPort c.port $ setHost "*" defaultSettings
-
+      migrate'
       runSettings settings runApi
     Failure _ -> print "error"
