@@ -4,6 +4,7 @@ module Search
   ) where
 
 import Config
+import Control.Exception (SomeException, try)
 import Data.Default (def)
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
@@ -35,7 +36,13 @@ withOpenSearch cfg action = do
   let serverUrl = "https://" <> T.unpack cfg.osHost <> ":" <> show cfg.osPort
       server = Server $ T.pack serverUrl
       mSt = mkManagerSettings insecureTlsSettings Nothing -- FIXME: Support secure TLS
+  print $ "Connecting to OpenSearch: " <> serverUrl
   manager <- newTlsManagerWith mSt
   let env = mkBHEnv server manager
       envWithAuth = env{bhRequestHook = pure . addBasicAuth cfg}
-  runBH envWithAuth action
+  r <- try @SomeException $ runBH envWithAuth action
+  case r of
+    Left e -> do
+      putStrLn $ "OpenSearch exception: " <> show e
+      pure $ Left $ EsError Nothing $ T.pack $ "Error: " <> show e
+    Right esResult -> pure esResult
