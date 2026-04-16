@@ -25,6 +25,7 @@ library
     Database.Reports
     Database.Types
     Relago.Prelude
+    Report
     Search
     Search.Reports
     Server
@@ -33,11 +34,17 @@ library
   build-depends:
     , aeson
     , async
+    , attoparsec-aeson
+    , attoparsec
+    , conduit-extra
     , base
+    , exceptions
     , base64-bytestring
     , bloodhound
     , bytestring
     , containers
+    , conduit
+    , conduit-aeson
     , crypton-connection
     , data-default
     , directory
