@@ -21,24 +21,41 @@ library
     API.Upload
     API.Util
     Config
+    Database
+    Database.Reports
+    Database.Types
+    Relago.Prelude
+    Search
+    Search.Reports
     Server
+    State
 
   build-depends:
     , aeson
     , async
     , base
     , base64-bytestring
+    , bloodhound
     , bytestring
     , containers
+    , crypton-connection
     , data-default
     , directory
+    , esqueleto
     , filepath
     , h-gpgme
+    , http-client
+    , http-client-tls
     , http-media
     , http-types
     , lens
+    , monad-logger
     , mtl
     , optparse-generic
+    , persistent
+    , persistent-migration
+    , persistent-postgresql
+    , resource-pool
     , safe-exceptions
     , servant
     , servant-client
@@ -47,10 +64,12 @@ library
     , stm
     , text
     , time
+    , tls
     , toml-parser
     , transformers
     , unliftio
     , utf8-string
+    , vector
     , wai
     , wai-extra
     , warp

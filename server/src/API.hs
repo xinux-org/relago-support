@@ -1,19 +1,16 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module API where
 
-import API.Keys
-import API.Upload
-import API.Util
-import Config
-import Data.Kind (Type)
+import API.Keys (KeysRoutes, keysHandlers)
+import API.Upload (UploadRoutes, uploadHandlers)
+import API.Util (errorFormatters)
+import Relago.Prelude
 import Servant
-import Servant.API.Generic
 import Servant.Server.Generic
 
 type API :: Type -> Type
@@ -32,7 +29,7 @@ data ApiServer route = MkApiServer
 apiProxy :: Proxy (ToServantApi API)
 apiProxy = Proxy
 
-apiHandlers :: (AppConfig) => API AsServer
+apiHandlers :: (AppState) => API AsServer
 apiHandlers =
   MkAPI
     { upload = uploadHandlers
@@ -44,13 +41,13 @@ heal :: Handler Integer
 heal =
   return 1
 
-mkServer :: (AppConfig) => ApiServer AsServer
+mkServer :: (AppState) => ApiServer AsServer
 mkServer =
   MkApiServer
     { api = apiHandlers
     }
 
-runApi :: (AppConfig) => Application
+runApi :: (AppState) => Application
 runApi =
   serveWithContext
     (Proxy @(ToServantApi ApiServer))
