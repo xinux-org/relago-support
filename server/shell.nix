@@ -22,6 +22,8 @@ pkgs.mkShell {
     hpkgs.bzlib
     hpkgs.bzlib-conduit
     hpkgs.bzip2-clib
+    hpkgs.postgresql-libpq
+    hpkgs.postgresql-libpq-configure
     # hpkgs.bzip2-clib
 
     pkgs.haskellPackages.cabal-fmt
@@ -34,6 +36,9 @@ pkgs.mkShell {
     pkgs.bzip2
     pkgs.libzip
     pkgs.gpgme
+    pkgs.libpq.pg_config
+    pkgs.libpq.dev
+
     # pkgs.lbzip2
     # pkgs.bzip3
     # pre-commit-check.enabledPackages

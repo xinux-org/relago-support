@@ -1,17 +1,17 @@
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedRecordDot #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Server where
 
-import API
-import Config
-import Data.Kind (Type)
-import Network.Wai.Handler.Warp qualified as WP
+import API (runApi)
+import Config (loadConfig)
+import Control.Monad.Logger (runStdoutLoggingT)
+import Data.Text.Encoding (encodeUtf8)
+import Database (migrate')
+import Database.Persist.Postgresql (createPostgresqlPool)
+import Network.Wai.Handler.Warp (defaultSettings, runSettings, setHost, setPort)
 import Options.Generic
+import Relago.Prelude
 import Toml.Schema.Matcher (Result (..))
-import Network.Wai.Handler.Warp
 
 type Options :: Type -> Type
 newtype Options w = Options
@@ -27,14 +27,14 @@ run = do
   (op :: Options Unwrapped) <- unwrapRecord "Registrar application"
   putStrLn "Application ready to start"
 
-
   cn <- loadConfig op.cfg
   case cn of
     Success _ c -> do
-      let ?config = c
-      let st = setPort c.port $ setHost "*" defaultSettings -- FIXME: this is trival solution
-
-      WP.runSettings st $ runApi
+      pool <-
+        runStdoutLoggingT
+          $ createPostgresqlPool (encodeUtf8 c.database) c.databasePoolSize
+      let ?st = MkAppSt{config = c, db = pool}
+      let settings = setPort c.port $ setHost "*" defaultSettings
+      migrate'
+      runSettings settings runApi
     Failure _ -> print "error"
-
--- FIXME: port number from options

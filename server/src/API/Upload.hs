@@ -1,8 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -10,26 +8,21 @@ module API.Upload where
 
 import Codec.Archive.Zip qualified as ZIP
 import Codec.Compression.Zlib qualified as Zlib
-import Config (AppConfig, Config (dataDir))
-import Control.Monad
-import Control.Monad.IO.Class (MonadIO (..))
+import Control.Monad (void)
 import Data.ByteString.Lazy qualified as LBS
-import Data.Kind (Type)
 import Data.List (find)
 import Data.Map qualified as M
-import Data.Text (Text)
-import Data.Time.Clock.POSIX
-import GHC.Generics (Generic)
+import Data.Text qualified as T
+import Data.Time.Clock.POSIX (getPOSIXTime)
+import Database.Reports (createReport)
+import Relago.Prelude
+import Search.Reports
 import Servant hiding (Param)
 import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (renameFile)
-import System.FilePath
-  ( addExtension
-  , dropExtension
-  , isExtensionOf
-  , (</>)
-  )
+import System.FilePath (addExtension, dropExtension, dropFileName, isExtensionOf, (</>))
+import System.FilePath.Posix (takeDirectory)
 
 type UploadRoutes :: Type -> Type
 newtype UploadRoutes route = MkUploadRoutes
@@ -43,9 +36,9 @@ instance FromMultipart Tmp Report where
   fromMultipart multipartData =
     let f = lookupFile "report" multipartData in (MkReport . fdPayload <$> f) <*> (fdFileName <$> f)
 
-upload :: (?config :: Config) => Report -> Handler Integer
+upload :: (AppState) => Report -> Handler Integer
 upload r = do
-  let c = ?config
+  let c = ?st.config
   liftIO $ do
     tm <- getPOSIXTime -- FIXME: Use something unique identificator generator for rename archive file
     let dataPath = c.dataDir
@@ -62,13 +55,17 @@ upload r = do
     case jr of -- FIXME: simlify code
       Just j -> do
         let fname = dropExtension j
+            iName = takeDirectory fname
+            fpath = unzipFolder </> fname
         cmp <- LBS.readFile $ unzipFolder </> j
-        LBS.writeFile (unzipFolder </> fname) $ Zlib.decompress cmp
+        LBS.writeFile fpath $ Zlib.decompress cmp
+        void $ createReport (T.pack fname) (T.pack fpath)
+        liftIO $ indexJournalLogsFromFile c.openSearch (T.pack iName) fpath
       Nothing -> print "Journal not found" -- FIXME: Handle error
     print r
   return 0
 
-uploadHandlers :: (AppConfig) => UploadRoutes AsServer
+uploadHandlers :: (AppState) => UploadRoutes AsServer
 uploadHandlers =
   MkUploadRoutes
     { _log = upload
