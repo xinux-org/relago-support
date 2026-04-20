@@ -1,11 +1,12 @@
-flake: {
+flake:
+{
   config,
   lib,
   pkgs,
   ...
-}: let
-  inherit
-    (lib)
+}:
+let
+  inherit (lib)
     mkEnableOption
     mkOption
     mkIf
@@ -20,33 +21,33 @@ flake: {
   caddy = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "caddy") {
     services.caddy.virtualHosts =
       lib.debug.traceIf (isNull cfg.proxy.domain)
-      "proxy.domain can't be null, please specicy it properly!"
-      {
-        "${cfg.proxy.domain}" = {
-          serverAliases = cfg.proxy.aliases;
-          extraConfig = ''
-            reverse_proxy 127.0.0.1:${toString cfg.port}
-          '';
+        "proxy.domain can't be null, please specicy it properly!"
+        {
+          "${cfg.proxy.domain}" = {
+            serverAliases = cfg.proxy.aliases;
+            extraConfig = ''
+              reverse_proxy 127.0.0.1:${toString cfg.port}
+            '';
+          };
         };
-      };
   };
 
   nginx = lib.mkIf (cfg.enable && cfg.proxy.enable && cfg.proxy.proxy == "nginx") {
     services.nginx = {
       virtualHosts =
         lib.debug.traceIf (isNull cfg.proxy.domain)
-        "proxy.domain can't be null, please specify it properly!"
-        {
-          "${cfg.proxy.domain}" = {
-            addSSL = true;
-            enableACME = true;
-            serverAliases = cfg.proxy.aliases;
-            locations."/" = {
-              proxyPass = "http://127.0.0.1:${toString cfg.port}";
-              proxyWebsockets = true;
+          "proxy.domain can't be null, please specify it properly!"
+          {
+            "${cfg.proxy.domain}" = {
+              addSSL = true;
+              enableACME = true;
+              serverAliases = cfg.proxy.aliases;
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:${toString cfg.port}";
+                proxyWebsockets = true;
+              };
             };
           };
-        };
       clientMaxBodySize = "1024m";
     };
   };
@@ -60,18 +61,18 @@ flake: {
       useDefaultShell = true;
     };
 
-    users.groups.${cfg.group} = {};
+    users.groups.${cfg.group} = { };
 
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0770 ${cfg.user} ${cfg.group} -"
       "d ${cfg.tmpDir}  0770 ${cfg.user} ${cfg.group} -"
     ];
 
-    systemd.targets."relago-server" = {};
+    systemd.targets."relago-server" = { };
 
     systemd.services."relago-server-config" = {
-      wantedBy = ["relago-server.target"];
-      partOf = ["relago-server.target"];
+      wantedBy = [ "relago-server.target" ];
+      partOf = [ "relago-server.target" ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -82,14 +83,16 @@ flake: {
         WorkingDirectory = "${cfg.dataDir}";
         RemainAfterExit = true;
 
-        ExecStartPre = let
-          preStartFullPrivileges = ''
-            set -o errexit -o pipefail -o nounset
-            mkdir -p ${cfg.dataDir} ${cfg.tmpDir}
-            ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.dataDir}
-            ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmpDir}
-          '';
-        in "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
+        ExecStartPre =
+          let
+            preStartFullPrivileges = ''
+              set -o errexit -o pipefail -o nounset
+              mkdir -p ${cfg.dataDir} ${cfg.tmpDir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.dataDir}
+              ${pkgs.coreutils}/bin/install -d -m 0770 -o ${cfg.user} -g ${cfg.group} ${cfg.tmpDir}
+            '';
+          in
+          "+${pkgs.writeShellScript "${packageName}-pre-start-full-privileges" preStartFullPrivileges}";
 
         ExecStart = pkgs.writeShellScript "${packageName}-config" ''
           set -o errexit -o pipefail -o nounset
@@ -113,14 +116,14 @@ flake: {
         "network.target"
         "relago-server-config.service"
       ];
-      wants = ["network-online.target"];
-      wantedBy = ["multi-user.target"];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
       # path = [ cfg.package ];
       restartTriggers = [
         cfg.package
         toml-config
       ];
-      path = [cfg.package];
+      path = [ cfg.package ];
 
       serviceConfig = {
         User = cfg.user;
@@ -142,7 +145,7 @@ flake: {
           "AF_INET"
           "AF_INET6"
         ];
-        DeviceAllow = ["/dev/stdin r"];
+        DeviceAllow = [ "/dev/stdin r" ];
         DevicePolicy = "strict";
         # IPAddressAllow = "localhost";
         LockPersonality = true;
@@ -156,7 +159,7 @@ flake: {
         ProtectKernelLogs = true;
         ProtectKernelTunables = true;
         ProtectSystem = "strict";
-        ReadOnlyPaths = ["/"];
+        ReadOnlyPaths = [ "/" ];
         RemoveIPC = true;
         RestrictAddressFamilies = [
           "AF_NETLINK"
@@ -179,11 +182,19 @@ flake: {
     };
   };
 
-  toml = pkgs.formats.toml {};
+  toml = pkgs.formats.toml { };
 
   toml-config = toml.generate "config.toml" {
     dataDir = cfg.tmpDir;
     port = cfg.port;
+    database = cfg.database;
+    databasePoolSize = cfg.databasePoolSize;
+    openSearch = {
+      osHost = cfg.osHost;
+      osPort = cfg.osPort;
+      osUser = cfg.osUser;
+      osPassword = cfg.osPassowrd;
+    };
   };
 
   asserts = lib.mkIf cfg.enable {
@@ -193,7 +204,8 @@ flake: {
       ) "services.relago-server.proxy.domain must be set in order to properly generate certificate!")
     ];
   };
-in {
+in
+{
   options = with lib; {
     services.relago-server = {
       enable = mkEnableOption ''
@@ -214,13 +226,14 @@ in {
 
         aliases = mkOption {
           type = with types; listOf str;
-          default = [];
-          example = ["www.cocomelon.uz"];
+          default = [ ];
+          example = [ "www.cocomelon.uz" ];
           description = "List of domain aliases to add to domain";
         };
 
         proxy = mkOption {
-          type = with types;
+          type =
+            with types;
             nullOr (enum [
               "nginx"
               "caddy"
@@ -267,6 +280,60 @@ in {
         default = "/var/lib/relago-server/tmp";
         description = lib.mdDoc ''
           The path where relago-server keeps its tmp files.
+        '';
+      };
+
+      database = mkOption {
+        type = types.str;
+        default = "postgresql://postgres:postgres@localhost:5432";
+        example = "postgresql://postgres:postgres@localhost:5432";
+        description = lib.mdDoc ''
+          DB uri
+        '';
+      };
+
+      databasePoolSize = mkOption {
+        type = types.int;
+        default = 10;
+        example = 10;
+        description = lib.mdDoc ''
+          Pool amount of database
+        '';
+      };
+
+      osHost = mkOption {
+        type = types.str;
+        default = "localhost";
+        example = "localhost";
+        description = lib.mdDoc ''
+          OpenSearch host
+        '';
+      };
+
+      osPort = mkOption {
+        type = types.int;
+        default = 9200;
+        exampel = 9200;
+        description = lib.mdDock ''
+          Port of OpenSearch
+        '';
+      };
+
+      osUser = mkOption {
+        type = types.str;
+        default = "admin";
+        example = "admin";
+        description = lib.mdDoc ''
+          User for OpenSearch
+        '';
+      };
+
+      osPassword = mkOption {
+        type = types.str;
+        default = "admin";
+        example = "password";
+        description = lib.mdDoc ''
+          Password for user of OpenSearch
         '';
       };
 
