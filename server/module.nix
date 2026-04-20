@@ -313,7 +313,7 @@ in
       osPort = mkOption {
         type = types.int;
         default = 9200;
-        exampel = 9200;
+        example = 9200;
         description = lib.mdDock ''
           Port of OpenSearch
         '';
