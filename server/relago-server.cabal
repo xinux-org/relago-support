@@ -75,6 +75,7 @@ library
     , warp
     , zip
     , zlib
+    , uuid
 
   hs-source-dirs:     src
   default-language:   GHC2024

@@ -12,10 +12,15 @@ import Servant hiding (Param)
 import Servant.Server.Generic (AsServer)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
+import Data.UUID qualified as UUID
+import Data.UUID.V4 qualified as UUIDV4
+import Data.ByteString.Lazy qualified as LBS
+import qualified Data.Monoid as LBS
+
 
 type KeysRoutes :: Type -> Type
 newtype KeysRoutes route = MkKeysRoutes
-  { exchange :: route :- "exchange" :> ReqBody '[JSON] ExchangeKey :> Post '[JSON] ExchangeKey
+  { exchange :: route :- "exchange" :> ReqBody '[JSON] ExchangeKey :> Post '[OctetStream] LBS.ByteString
   }
   deriving stock (Generic)
 
@@ -28,11 +33,13 @@ data ExchangeKey = MkExchangeKey
 deriving anyclass instance ToJSON ExchangeKey
 deriving anyclass instance FromJSON ExchangeKey
 
-exchangeKey :: (AppState) => ExchangeKey -> Handler ExchangeKey
+exchangeKey :: (AppState) => ExchangeKey -> Handler LBS.ByteString
 exchangeKey _k = do
+  uuid <- liftIO UUIDV4.nextRandom
+
   let c = ?st.config
       keyDir = c.dataDir </> "keys"
-      bindedKeyDir = c.dataDir </> "userKey"
+      bindedKeyDir = c.dataDir </> "userKey" </> UUID.toString uuid
 
   liftIO $ createDirectoryIfMissing True keyDir
   liftIO $ createDirectoryIfMissing True bindedKeyDir
@@ -81,14 +88,15 @@ exchangeKey _k = do
                   (Left err, _) -> pure $ Left ("Failed to export public key: " <> show err)
                   (_, Left err) -> pure $ Left ("Failed to export secret key: " <> show err)
               [] -> pure $ Left "No encryption subkey found"
+    -- return LBS.mempty
 
   case ret of
     Left err -> throwError $ err500{errBody = "Key generation failed: " <> fromString err}
     Right encryptionKeyFpr -> do
-      return
-        $ MkExchangeKey
-          { publicKey = encryptionKeyFpr
-          }
+      return  LBS.mempty
+        -- $ MkExchangeKey
+        --   { publicKey = encryptionKeyFpr
+        --   }
 
 keysHandlers :: (AppState) => KeysRoutes AsServer
 keysHandlers =
