@@ -27,7 +27,6 @@ import System.FilePath ((</>))
 type KeysRoutes :: Type -> Type
 newtype KeysRoutes route = MkKeysRoutes
   { exchange :: route :- "exchange" :> MultipartForm Tmp ExchangeKey :> Post '[OctetStream] LBS.ByteString
-  -- exchange :: route :- "exchange" :> ReqBody '[JSON] ExchangeKey :> Post '[OctetStream] LBS.ByteString
   }
   deriving stock (Generic)
 
