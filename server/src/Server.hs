@@ -11,6 +11,7 @@ import Database.Persist.Postgresql (createPostgresqlPool)
 import Network.Wai.Handler.Warp (defaultSettings, runSettings, setHost, setPort)
 import Options.Generic
 import Relago.Prelude
+import S3 (s3Conn)
 import Toml.Schema.Matcher (Result (..))
 
 type Options :: Type -> Type
@@ -33,7 +34,7 @@ run = do
       pool <-
         runStdoutLoggingT
           $ createPostgresqlPool (encodeUtf8 c.database) c.databasePoolSize
-      let ?st = MkAppSt{config = c, db = pool}
+      let ?st = MkAppSt{config = c, db = pool, s3Con = s3Conn c.s3}
       let settings = setPort c.port $ setHost "*" defaultSettings
       migrate'
       runSettings settings runApi
