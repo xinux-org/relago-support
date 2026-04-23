@@ -25,6 +25,7 @@ library
     Database.Reports
     Database.Types
     Relago.Prelude
+    S3
     Search
     Search.Reports
     Server
@@ -49,9 +50,11 @@ library
     , http-media
     , http-types
     , lens
+    , minio-hs
     , monad-logger
     , mtl
     , optparse-generic
+    , path-pieces
     , persistent
     , persistent-migration
     , persistent-postgresql
@@ -69,13 +72,13 @@ library
     , transformers
     , unliftio
     , utf8-string
+    , uuid
     , vector
     , wai
     , wai-extra
     , warp
     , zip
     , zlib
-    , uuid
 
   hs-source-dirs:     src
   default-language:   GHC2024

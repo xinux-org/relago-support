@@ -1,32 +1,44 @@
 {- HLINT ignore "Use newtype instead of data" -}
 module API.Keys where
 
+import Codec.Archive.Zip qualified as ZIP
+import Config (S3Config (..))
+import Control.Monad (void)
 import Crypto.Gpgme
 import Crypto.Gpgme.Key.Gen qualified as G
 import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as LBS
+import Data.ByteString.UTF8 qualified as BSU
 import Data.Default (def)
 import Data.String (fromString)
-import Data.Text.Encoding (decodeUtf8)
+import Data.Text qualified as T
+import Data.UUID qualified as UUID
+import Data.UUID.V4 qualified as UUIDV4
+import Database.Reports (createReporter)
+import Database.Types (Reporter (..))
 import Relago.Prelude
+import S3
 import Servant hiding (Param)
+import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
-import Data.UUID qualified as UUID
-import Data.UUID.V4 qualified as UUIDV4
-import Data.ByteString.Lazy qualified as LBS
-import qualified Data.Monoid as LBS
-
 
 type KeysRoutes :: Type -> Type
 newtype KeysRoutes route = MkKeysRoutes
-  { exchange :: route :- "exchange" :> ReqBody '[JSON] ExchangeKey :> Post '[OctetStream] LBS.ByteString
+  { exchange :: route :- "exchange" :> MultipartForm Tmp ExchangeKey :> Post '[OctetStream] LBS.ByteString
+  -- exchange :: route :- "exchange" :> ReqBody '[JSON] ExchangeKey :> Post '[OctetStream] LBS.ByteString
   }
   deriving stock (Generic)
 
+instance FromMultipart Tmp ExchangeKey where
+  fromMultipart multipartData =
+    let f = lookupFile "publicKey" multipartData in (MkExchangeKey . fdPayload <$> f) <*> (fdFileName <$> f)
+
 type ExchangeKey :: Type
 data ExchangeKey = MkExchangeKey
-  { publicKey :: !Text
+  { publicKey :: !FilePath
+  , fileName :: !Text
   }
   deriving stock (Generic, Show)
 
@@ -34,15 +46,28 @@ deriving anyclass instance ToJSON ExchangeKey
 deriving anyclass instance FromJSON ExchangeKey
 
 exchangeKey :: (AppState) => ExchangeKey -> Handler LBS.ByteString
-exchangeKey _k = do
+exchangeKey k = do
   uuid <- liftIO UUIDV4.nextRandom
 
   let c = ?st.config
       keyDir = c.dataDir </> "keys"
       bindedKeyDir = c.dataDir </> "userKey" </> UUID.toString uuid
+      pubKey = "public.asc"
+      secKey = "secret.asc"
+      uKeyN = "userkey.asc"
+      s3Con = ?st.s3Con
+      pbKeyPath = UUID.toString uuid </> pubKey
+      secKeyPath = UUID.toString uuid </> secKey
+      userKeyPath = UUID.toString uuid </> uKeyN
+      pbKey = UploadObject (bindedKeyDir </> pubKey) (T.pack pbKeyPath)
+      scKey = UploadObject (bindedKeyDir </> secKey) (T.pack secKeyPath)
+      uKey = UploadObject k.publicKey (T.pack userKeyPath)
+      keyPass = "42" -- FIXME: Generate random symbols as password
+      reporter = Reporter pbKeyPath secKeyPath userKeyPath $ T.pack keyPass
 
   liftIO $ createDirectoryIfMissing True keyDir
   liftIO $ createDirectoryIfMissing True bindedKeyDir
+  liftIO $ createReporter uuid reporter
 
   ret <- liftIO $ withCtx keyDir "C" OpenPGP $ \ctx -> do
     -- FIXME: Remove raw params, use 256-bit fixed key length
@@ -59,7 +84,9 @@ exchangeKey _k = do
                 \Name-Comment: (pp=42)\n\
                 \Name-Email: toshmat@xinux.uz\n\
                 \Expire-Date: 0\n\
-                \Passphrase: 42\n"
+                \Passphrase:"
+                  <> BSU.fromString keyPass
+                  <> "\\n"
             }
     genResult <- G.genKey ctx params
     case genResult of
@@ -82,21 +109,26 @@ exchangeKey _k = do
                 case (pKey, sKey) of
                   (Right pubKey, Right secKey) -> do
                     -- Save to bindedKeyDir
-                    BS.writeFile (bindedKeyDir </> "public.asc") pubKey
-                    BS.writeFile (bindedKeyDir </> "secret.asc") secKey
-                    pure $ Right (decodeUtf8 (subkeyFpr encryptionKey))
+                    BS.writeFile pbKey.path pubKey
+                    BS.writeFile scKey.path secKey
+                    void $ liftIO $ uploadObjects s3Con c.s3.s3MainBucket [pbKey, scKey, uKey]
+
+                    let archivePath = bindedKeyDir </> "res.zip"
+                        uuidBytes = BSU.fromString $ UUID.toString uuid
+                    pubKeyEntry <- ZIP.mkEntrySelector "public.asc"
+                    idFileEntry <- ZIP.mkEntrySelector "idfile"
+                    ZIP.createArchive archivePath $ do
+                      ZIP.addEntry ZIP.Store pubKey pubKeyEntry
+                      ZIP.addEntry ZIP.Store uuidBytes idFileEntry
+
+                    pure $ Right archivePath
                   (Left err, _) -> pure $ Left ("Failed to export public key: " <> show err)
                   (_, Left err) -> pure $ Left ("Failed to export secret key: " <> show err)
               [] -> pure $ Left "No encryption subkey found"
-    -- return LBS.mempty
 
   case ret of
     Left err -> throwError $ err500{errBody = "Key generation failed: " <> fromString err}
-    Right encryptionKeyFpr -> do
-      return  LBS.mempty
-        -- $ MkExchangeKey
-        --   { publicKey = encryptionKeyFpr
-        --   }
+    Right archivePath -> liftIO $ LBS.readFile archivePath
 
 keysHandlers :: (AppState) => KeysRoutes AsServer
 keysHandlers =
