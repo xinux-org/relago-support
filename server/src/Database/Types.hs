@@ -25,8 +25,8 @@ instance PersistField UUID where
     PersistLiteral_ _ bs -> parseUUID $ decodeUtf8 bs
     PersistByteString bs -> parseUUID $ decodeUtf8 bs
     _ -> Left "Expected PersistText or PersistLiteral for UUID"
-    where
-      parseUUID = maybe (Left "Invalid UUID") Right . UUID.fromText
+   where
+    parseUUID = maybe (Left "Invalid UUID") Right . UUID.fromText
 
 instance PersistFieldSql UUID where
   sqlType _ = SqlOther "UUID"
