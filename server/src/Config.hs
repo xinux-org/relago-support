@@ -22,6 +22,16 @@ data OpenSearchConfig = OpenSearchConfig
   deriving (Eq, Generic, Show)
   deriving (FromValue, ToTable, ToValue) via GenericTomlTable OpenSearchConfig
 
+data S3Config = S3Config
+  { s3Url :: !String
+  , s3KeyId :: !Text
+  , s3SecretKey :: !String
+  , s3Region :: !Text
+  , s3MainBucket :: !Text
+  }
+  deriving (Eq, Generic, Show)
+  deriving (FromValue, ToTable, ToValue) via GenericTomlTable S3Config
+
 type Config :: Type
 data Config = Config
   { dataDir :: !FilePath
@@ -29,6 +39,7 @@ data Config = Config
   , database :: !Text
   , databasePoolSize :: !Int
   , openSearch :: !OpenSearchConfig
+  , s3 :: !S3Config
   }
   deriving (Eq, Generic, Show)
   deriving (FromValue, ToTable, ToValue) via GenericTomlTable Config
