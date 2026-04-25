@@ -33,6 +33,9 @@
         hpkgs = pkgs.haskell.packages."ghc912".override {
           overrides = self: super: {
             bz2 = hlib.dontCheck (hlib.doJailbreak super.bz2);
+            esqueleto = hlib.dontCheck (hlib.doJailbreak super.esqueleto);
+            minio-hs = hlib.dontCheck (hlib.doJailbreak super.minio-hs);
+            cryptonite = hlib.dontCheck (hlib.doJailbreak super.cryptonite);
             bzlib-conduit = hlib.dontCheck (hlib.doJailbreak super.bzlib-conduit);
             bindings-gpgme = hlib.dontCheck (hlib.doJailbreak (self.callCabal2nix "bindings-gpgme"
               ((fetchGit {
