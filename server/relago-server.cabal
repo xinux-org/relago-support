@@ -50,6 +50,7 @@ library
     , http-media
     , http-types
     , lens
+    , log-base
     , minio-hs
     , monad-logger
     , mtl
