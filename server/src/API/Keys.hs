@@ -3,7 +3,7 @@ module API.Keys where
 
 import Codec.Archive.Zip qualified as ZIP
 import Config (S3Config (..))
-import Control.Monad (void)
+import Control.Monad (void, replicateM)
 import Crypto.Gpgme
 import Crypto.Gpgme.Key.Gen qualified as G
 import Data.ByteString qualified as BS
@@ -23,6 +23,7 @@ import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
+import System.Random
 
 type KeysRoutes :: Type -> Type
 newtype KeysRoutes route = MkKeysRoutes
@@ -135,3 +136,6 @@ keysHandlers =
   MkKeysRoutes
     { exchange = exchangeKey
     }
+
+randomSymbols :: IO String
+randomSymbols = replicateM 10 (randomRIO ('!', '~'))

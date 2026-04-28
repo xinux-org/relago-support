@@ -60,6 +60,7 @@ library
     , persistent
     , persistent-migration
     , persistent-postgresql
+    , random
     , resource-pool
     , safe-exceptions
     , servant
