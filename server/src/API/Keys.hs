@@ -83,9 +83,9 @@ exchangeKey k = do
                 \Name-Comment: (pp=42)\n\
                 \Name-Email: toshmat@xinux.uz\n\
                 \Expire-Date: 0\n\
-                \Passphrase:"
+                \Passphrase: "
                   <> BSU.fromString keyPass
-                  <> "\\n"
+                  <> "\n"
             }
     genResult <- G.genKey ctx params
     case genResult of
@@ -98,9 +98,10 @@ exchangeKey k = do
             let subkeys = keySubKeys key
             case drop 1 subkeys of
               (encryptionKey : _) -> do
-                let passphrase = "42"
-                    passphraseCallback _hint _info _prevBad = return (Just passphrase)
+                let passphraseCallback _hint _info _prevBad = return (Just keyPass)
                 setPassphraseCallback ctx (Just passphraseCallback)
+
+                setArmor True ctx
                 -- Export public key using h-gpgme
                 pKey <- exportKey ctx fpr
                 -- Export secret key using h-gpgme

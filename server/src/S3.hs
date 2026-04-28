@@ -2,6 +2,10 @@ module S3 where
 
 import Config (S3Config (..))
 import Control.Monad (forM)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as LBS
+import Data.Conduit (runConduit, (.|))
+import Data.Conduit.Combinators qualified as CC
 import Data.Either (lefts, rights)
 import Data.Function ((&))
 import Data.String (fromString)
@@ -33,3 +37,9 @@ uploadObjects c bucket contents = do
     (_, _) -> print "Empty case"
 
   print "uploaded"
+
+downloadObject :: ConnectInfo -> Text -> Text -> IO (Either MinioErr BS.ByteString)
+downloadObject conn bucket objectName = runMinio conn $ do
+  obj <- getObject bucket objectName defaultGetObjectOptions
+  lbs <- runConduit $ gorObjectStream obj .| CC.sinkLazy
+  pure $ LBS.toStrict lbs

@@ -3,12 +3,13 @@ module Database.Reports
   , setReportIndexed
   , notIndexedReports
   , createReporter
+  , getReporterById
   ) where
 
 import Data.UUID (UUID)
 import Database (withPool)
 import Database.Esqueleto.Experimental (Entity (..), from, select, table, val, where_, (==.))
-import Database.Persist (insert, insertKey, update, (=.))
+import Database.Persist (get, insert, insertKey, update, (=.))
 import Database.Types (EntityField (Indexed), Key (..), Report (..), ReportId, Reporter (..))
 import Relago.Prelude
 
@@ -28,3 +29,6 @@ notIndexedReports = withPool $ do
 
 createReporter :: (AppState, MonadIO m) => UUID -> Reporter -> m ()
 createReporter uuid r = withPool $ insertKey (ReporterKey uuid) r
+
+getReporterById :: (AppState, MonadIO m) => UUID -> m (Maybe Reporter)
+getReporterById uuid = withPool $ get (ReporterKey uuid)

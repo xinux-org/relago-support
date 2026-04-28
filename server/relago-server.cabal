@@ -38,6 +38,8 @@ library
     , base64-bytestring
     , bloodhound
     , bytestring
+    , conduit
+    , conduit-extra
     , containers
     , crypton-connection
     , data-default
