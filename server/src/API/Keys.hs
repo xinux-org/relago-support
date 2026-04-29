@@ -3,7 +3,7 @@ module API.Keys where
 
 import Codec.Archive.Zip qualified as ZIP
 import Config (S3Config (..))
-import Control.Monad (void)
+import Control.Monad (replicateM, void)
 import Crypto.Gpgme
 import Crypto.Gpgme.Key.Gen qualified as G
 import Data.ByteString qualified as BS
@@ -14,6 +14,7 @@ import Data.String (fromString)
 import Data.Text qualified as T
 import Data.UUID qualified as UUID
 import Data.UUID.V4 qualified as UUIDV4
+import Data.Vector.Unboxed qualified as V
 import Database.Reports (createReporter)
 import Database.Types (Reporter (..))
 import Relago.Prelude
@@ -23,6 +24,7 @@ import Servant.Multipart
 import Servant.Server.Generic (AsServer)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
+import System.Random.Stateful (globalStdGen, uniformRM)
 
 type KeysRoutes :: Type -> Type
 newtype KeysRoutes route = MkKeysRoutes
@@ -47,6 +49,7 @@ deriving anyclass instance FromJSON ExchangeKey
 exchangeKey :: (AppState) => ExchangeKey -> Handler LBS.ByteString
 exchangeKey k = do
   uuid <- liftIO UUIDV4.nextRandom
+  keyPass <- liftIO $ randAlpha 12
 
   let c = ?st.config
       keyDir = c.dataDir </> "keys"
@@ -61,7 +64,6 @@ exchangeKey k = do
       pbKey = UploadObject (bindedKeyDir </> pubKey) (T.pack pbKeyPath)
       scKey = UploadObject (bindedKeyDir </> secKey) (T.pack secKeyPath)
       uKey = UploadObject k.publicKey (T.pack userKeyPath)
-      keyPass = "42" -- FIXME: Generate random symbols as password
       reporter = Reporter pbKeyPath secKeyPath userKeyPath $ T.pack keyPass
 
   liftIO $ createDirectoryIfMissing True keyDir
@@ -135,3 +137,17 @@ keysHandlers =
   MkKeysRoutes
     { exchange = exchangeKey
     }
+
+alphabet :: V.Vector Char
+alphabet = V.fromList (['a' .. 'z'] ++ ['A' .. 'Z'])
+{-# NOINLINE alphabet #-}
+
+alphaMaxIndx :: Int
+alphaMaxIndx = V.length alphabet - 1
+
+randAlpha :: Int -> IO String
+randAlpha n = replicateM n pickOne
+ where
+  pickOne = do
+    !i <- uniformRM (0, alphaMaxIndx) globalStdGen
+    pure (V.unsafeIndex alphabet i)
