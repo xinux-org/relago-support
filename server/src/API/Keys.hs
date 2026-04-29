@@ -49,6 +49,7 @@ deriving anyclass instance FromJSON ExchangeKey
 exchangeKey :: (AppState) => ExchangeKey -> Handler LBS.ByteString
 exchangeKey k = do
   uuid <- liftIO UUIDV4.nextRandom
+  keyPass <- liftIO $ randAlpha 12
 
   let c = ?st.config
       keyDir = c.dataDir </> "keys"
@@ -63,7 +64,6 @@ exchangeKey k = do
       pbKey = UploadObject (bindedKeyDir </> pubKey) (T.pack pbKeyPath)
       scKey = UploadObject (bindedKeyDir </> secKey) (T.pack secKeyPath)
       uKey = UploadObject k.publicKey (T.pack userKeyPath)
-      keyPass = liftIO $ randAlpha 16
       reporter = Reporter pbKeyPath secKeyPath userKeyPath $ T.pack keyPass
 
   liftIO $ createDirectoryIfMissing True keyDir
