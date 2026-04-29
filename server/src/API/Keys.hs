@@ -62,7 +62,7 @@ exchangeKey k = do
       pbKey = UploadObject (bindedKeyDir </> pubKey) (T.pack pbKeyPath)
       scKey = UploadObject (bindedKeyDir </> secKey) (T.pack secKeyPath)
       uKey = UploadObject k.publicKey (T.pack userKeyPath)
-      keyPass = "42" -- FIXME: Generate random symbols as password
+      keyPass = randomSymbols
       reporter = Reporter pbKeyPath secKeyPath userKeyPath $ T.pack keyPass
 
   liftIO $ createDirectoryIfMissing True keyDir
